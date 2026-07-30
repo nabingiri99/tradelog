@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import TradeLog from "./pages/TradeLog";
-import AddTrade from "./pages/AddTrade";
+import AddEditTrade from "./pages/AddEditTrade";
 import RulesChecklist from "./pages/RulesChecklist";
 import BacktestProgress from "./pages/BacktestProgress";
 
@@ -17,7 +17,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/log" element={<TradeLog />} />
-                <Route path="/add" element={<AddTrade />} />
+                <Route path="/add" element={<AddEditTrade />} />
+                <Route path="/edit/:id" element={<AddEditTrade />} />
                 <Route path="/checklist" element={<RulesChecklist />} />
                 <Route path="/backtest" element={<BacktestProgress />} />
               </Routes>
