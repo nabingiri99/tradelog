@@ -29,3 +29,7 @@ export function updateTrade(trade: Trade): Trade {
   saveTrades(getTrades().map((t) => (t.id === trade.id ? trade : t)));
   return trade;
 }
+
+export function deleteTrade(id: string): void {
+  saveTrades(getTrades().filter((t) => t.id !== id));
+}
