@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, ClipboardList } from "lucide-react";
+import { PlusCircle, ClipboardList, Download, Trash2, X } from "lucide-react";
 import TradeTable from "../components/TradeTable";
-import { getTrades, deleteTrade } from "../lib/storage";
+import { getTrades, deleteTrade, clearAllTrades } from "../lib/storage";
 import type { ResultType, SessionType } from "../types/Trade";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500";
+  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
 
 const RESULTS: Array<{ value: string; label: string }> = [
   { value: "", label: "All Results" },
@@ -52,6 +52,28 @@ export default function TradeLog() {
     setTrades((prev) => prev.filter((t) => t.id !== id));
   }
 
+  function handleExport() {
+    const blob = new Blob([JSON.stringify(trades, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tradelog-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleClearAll() {
+    clearAllTrades();
+    setTrades([]);
+    setShowClearModal(false);
+  }
+
+  const [showClearModal, setShowClearModal] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,7 +86,7 @@ export default function TradeLog() {
         <button
           type="button"
           onClick={() => navigate("/add")}
-          className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
         >
           <PlusCircle className="h-4 w-4" />
           Add Trade
@@ -117,11 +139,73 @@ export default function TradeLog() {
           <button
             type="button"
             onClick={() => navigate("/add")}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
           >
             <PlusCircle className="h-4 w-4" />
             Add Trade
           </button>
+        </div>
+      )}
+
+      {/* Export & Clear — only show when there is data */}
+      {trades.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export Trades JSON
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowClearModal(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-400 hover:border-rose-600 hover:text-rose-300"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Clear All Data
+          </button>
+        </div>
+      )}
+
+      {/* Clear All Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="mx-4 w-full max-w-sm rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-slate-100">
+                Clear All Data?
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowClearModal(false)}
+                className="rounded p-1 text-slate-500 hover:text-slate-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-slate-400">
+              This will permanently delete all {trades.length} trade
+              {trades.length === 1 ? "" : "s"}. This action cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowClearModal(false)}
+                className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500"
+              >
+                Delete All
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

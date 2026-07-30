@@ -33,3 +33,7 @@ export function updateTrade(trade: Trade): Trade {
 export function deleteTrade(id: string): void {
   saveTrades(getTrades().filter((t) => t.id !== id));
 }
+
+export function clearAllTrades(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}

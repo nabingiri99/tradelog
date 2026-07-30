@@ -117,7 +117,7 @@ export default function TradeTable({ trades, onDelete }: TradeTableProps) {
                 <ResultBadge result={trade.result} />
               </td>
               <td className={cellClass}>
-                <span className="font-medium text-sky-400">
+                <span className="font-medium text-violet-400">
                   {trade.rr.toFixed(2)}R
                 </span>
               </td>
@@ -130,7 +130,7 @@ export default function TradeTable({ trades, onDelete }: TradeTableProps) {
                     type="button"
                     title="Edit trade"
                     onClick={() => navigate(`/edit/${trade.id}`)}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-sky-400"
+                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-indigo-400"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>

@@ -22,14 +22,14 @@ function today(): string {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500";
+  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
 const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
 
 function toggleClass(active: boolean): string {
   return [
     "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
     active
-      ? "border-sky-500 bg-sky-500/15 text-sky-300"
+      ? "border-indigo-500 bg-indigo-500/15 text-indigo-300"
       : "border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-100",
   ].join(" ");
 }
@@ -320,7 +320,7 @@ export default function TradeForm({
             <p className="text-xs uppercase tracking-wide text-slate-400">
               Risk : Reward
             </p>
-            <p className="text-2xl font-semibold text-sky-400">
+            <p className="text-2xl font-semibold text-violet-400">
               {rr === null ? "—" : `${rr.toFixed(2)}R`}
             </p>
           </div>
@@ -359,7 +359,7 @@ export default function TradeForm({
       <div className="flex gap-3">
         <button
           type="submit"
-          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
         >
           {initialTrade ? "Update Trade" : "Save Trade"}
         </button>
