@@ -1,9 +1,10 @@
 import { useParams } from "react-router-dom";
 import TradeForm from "../components/TradeForm";
-import { getTrade } from "../lib/storage";
+import { useTrades } from "../lib/tradeStore";
 
 export default function AddEditTrade() {
   const { id } = useParams<{ id: string }>();
+  const { getTrade } = useTrades();
   const initialTrade = id ? getTrade(id) : undefined;
 
   if (id && !initialTrade) {

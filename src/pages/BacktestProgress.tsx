@@ -1,7 +1,6 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Target, BarChart3, TrendingUp, Trophy, Flag } from "lucide-react";
-import { getTrades } from "../lib/storage";
+import { useTrades } from "../lib/TradeContext";
 
 const TARGET = 50;
 
@@ -13,7 +12,7 @@ const MILESTONES = [
 
 export default function BacktestProgress() {
   const navigate = useNavigate();
-  const trades = useMemo(() => getTrades(), []);
+  const { trades } = useTrades();
 
   const total = trades.length;
   const pct = Math.min(Math.round((total / TARGET) * 100), 100);

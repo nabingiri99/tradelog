@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   List,
@@ -9,7 +9,9 @@ import {
   Menu,
   X,
   LineChart,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "../lib/authStore";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -47,6 +49,14 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    setMobileOpen(false);
+    navigate("/login");
+  }
 
   return (
     <>
@@ -80,7 +90,7 @@ export default function Navbar() {
       )}
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-800 bg-slate-900 p-4 transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-800 bg-slate-900 p-4 transition-transform lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           "lg:static lg:z-auto",
         ].join(" ")}
@@ -89,9 +99,30 @@ export default function Navbar() {
           <LineChart className="h-7 w-7 text-emerald-400" aria-hidden="true" />
           <span className="text-xl font-semibold text-slate-100">TradeLog</span>
         </div>
-        <div className="mt-14 lg:mt-0">
+        <div className="mt-14 flex-1 lg:mt-0">
           <NavLinks onNavigate={() => setMobileOpen(false)} />
         </div>
+        {user && (
+          <div className="mt-4 border-t border-slate-800 pt-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-200">
+                  {user.name}
+                </p>
+                <p className="truncate text-xs text-slate-500">{user.email}</p>
+              </div>
+              <button
+                type="button"
+                title="Log out"
+                aria-label="Log out"
+                onClick={handleLogout}
+                className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-rose-400"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );

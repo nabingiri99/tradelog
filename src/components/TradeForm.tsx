@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { addTrade, updateTrade } from "../lib/storage";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTrades } from "../lib/TradeContext";
 import type {
   DirectionType,
   ResultType,
@@ -44,6 +44,9 @@ export default function TradeForm({
   onSubmitSuccess,
 }: TradeFormProps) {
   const navigate = useNavigate();
+  const { addTrade, updateTrade } = useTrades();
+  const [searchParams] = useSearchParams();
+  const validFromQuery = searchParams.get("valid") === "true";
 
   const [date, setDate] = useState(initialTrade?.date ?? today());
   const initialPairIsCommon =
@@ -77,8 +80,9 @@ export default function TradeForm({
     initialTrade?.result ?? "Open",
   );
   const [notes, setNotes] = useState(initialTrade?.notes ?? "");
+  const [tagsText, setTagsText] = useState(initialTrade?.tags?.join(", ") ?? "");
   const [isValidRuleTrade, setIsValidRuleTrade] = useState(
-    initialTrade?.isValidRuleTrade ?? false,
+    initialTrade?.isValidRuleTrade ?? validFromQuery,
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -128,6 +132,11 @@ export default function TradeForm({
       return;
     }
 
+    const tags = tagsText
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     const payload = {
       date,
       pair: pair.toUpperCase(),
@@ -140,6 +149,7 @@ export default function TradeForm({
       result,
       rr: rr ?? 0,
       notes: notes.trim() || undefined,
+      tags: tags.length > 0 ? tags : undefined,
       isValidRuleTrade,
     };
 
@@ -337,6 +347,20 @@ export default function TradeForm({
           className={inputClass}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="tags">
+          Tags
+        </label>
+        <input
+          id="tags"
+          type="text"
+          placeholder="e.g. news, revenge, scalp (comma separated)"
+          className={inputClass}
+          value={tagsText}
+          onChange={(e) => setTagsText(e.target.value)}
         />
       </div>
 

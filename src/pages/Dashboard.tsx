@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -7,6 +7,8 @@ import {
   DollarSign,
   PlusCircle,
   LineChart,
+  Trophy,
+  AlertOctagon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -20,7 +22,7 @@ import {
 } from "recharts";
 import StatCard from "../components/StatCard";
 import EquityCurveChart from "../components/EquityCurveChart";
-import { getTrades } from "../lib/storage";
+import { useTrades } from "../lib/TradeContext";
 import type { SessionType } from "../types/Trade";
 
 const SESSION_LABELS: Record<SessionType, string> = {
@@ -30,9 +32,13 @@ const SESSION_LABELS: Record<SessionType, string> = {
   Other: "Other",
 };
 
+const pairHeaderClass =
+  "whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400";
+const pairCellClass = "whitespace-nowrap px-3 py-2.5 text-sm text-slate-300";
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [trades] = useState(() => getTrades());
+  const { trades } = useTrades();
 
   const stats = useMemo(() => {
     const total = trades.length;
@@ -69,6 +75,32 @@ export default function Dashboard() {
         Losses: losses,
       };
     });
+  }, [trades]);
+
+  const pairData = useMemo(() => {
+    const byPair = new Map<string, { wins: number; losses: number; netR: number; total: number }>();
+    for (const t of trades) {
+      const entry = byPair.get(t.pair) ?? { wins: 0, losses: 0, netR: 0, total: 0 };
+      entry.total += 1;
+      if (t.result === "Win") {
+        entry.wins += 1;
+        entry.netR += t.rr;
+      } else if (t.result === "Loss") {
+        entry.losses += 1;
+        entry.netR -= 1;
+      }
+      byPair.set(t.pair, entry);
+    }
+    return Array.from(byPair.entries())
+      .map(([pair, s]) => {
+        const closed = s.wins + s.losses;
+        return {
+          pair,
+          ...s,
+          winRate: closed > 0 ? Math.round((s.wins / closed) * 100) : 0,
+        };
+      })
+      .sort((a, b) => b.netR - a.netR);
   }, [trades]);
 
   if (trades.length === 0) {
@@ -200,6 +232,70 @@ export default function Dashboard() {
               />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Pair Breakdown */}
+        <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+          <h3 className="mb-4 text-sm font-semibold text-slate-300">
+            Pair Breakdown (by Net R)
+          </h3>
+          {pairData.length === 0 ? (
+            <p className="text-sm text-slate-500">No trades yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-800">
+                <thead>
+                  <tr>
+                    <th className={pairHeaderClass}>Pair</th>
+                    <th className={pairHeaderClass}>Trades</th>
+                    <th className={pairHeaderClass}>W / L</th>
+                    <th className={pairHeaderClass}>Win Rate</th>
+                    <th className={pairHeaderClass}>Net R</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70">
+                  {pairData.map((p) => (
+                    <tr key={p.pair}>
+                      <td className={pairCellClass}>
+                        <span className="flex items-center gap-2 font-medium text-slate-100">
+                          {p === pairData[0] && p.netR > 0 && (
+                            <Trophy className="h-3.5 w-3.5 text-amber-400" />
+                          )}
+                          {p === pairData[pairData.length - 1] && p.netR < 0 && (
+                            <AlertOctagon className="h-3.5 w-3.5 text-rose-400" />
+                          )}
+                          {p.pair}
+                        </span>
+                      </td>
+                      <td className={pairCellClass}>{p.total}</td>
+                      <td className={pairCellClass}>
+                        <span className="text-emerald-400">{p.wins}</span>
+                        {" / "}
+                        <span className="text-rose-400">{p.losses}</span>
+                      </td>
+                      <td className={pairCellClass}>
+                        {p.winRate > 0 || p.losses > 0 ? `${p.winRate}%` : "—"}
+                      </td>
+                      <td className={pairCellClass}>
+                        <span
+                          className={`font-medium ${
+                            p.netR > 0
+                              ? "text-emerald-400"
+                              : p.netR < 0
+                                ? "text-rose-400"
+                                : "text-slate-300"
+                          }`}
+                        >
+                          {p.netR > 0 ? "+" : ""}
+                          {p.netR.toFixed(2)}R
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

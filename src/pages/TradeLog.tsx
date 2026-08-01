@@ -1,9 +1,20 @@
-import { useState, useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, ClipboardList, Download, Trash2, X } from "lucide-react";
-import TradeTable from "../components/TradeTable";
-import { getTrades, deleteTrade, clearAllTrades } from "../lib/storage";
+import {
+  PlusCircle,
+  ClipboardList,
+  Download,
+  Trash2,
+  X,
+  Upload,
+  FileSpreadsheet,
+} from "lucide-react";
+import TradeTable, { type SortKey, type SortDir } from "../components/TradeTable";
+import { useTrades } from "../lib/TradeContext";
+import { tradesToCsv, parseImportFile } from "../lib/csv";
 import type { ResultType, SessionType } from "../types/Trade";
+
+const PAGE_SIZE = 10;
 
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
@@ -24,16 +35,38 @@ const SESSIONS: Array<{ value: string; label: string }> = [
   { value: "Other", label: "Other" },
 ];
 
+const SORTABLE: Array<{ value: SortKey; label: string }> = [
+  { value: "date", label: "Date" },
+  { value: "pair", label: "Pair" },
+  { value: "session", label: "Session" },
+  { value: "direction", label: "Direction" },
+  { value: "result", label: "Result" },
+  { value: "rr", label: "R:R" },
+];
+
 export default function TradeLog() {
   const navigate = useNavigate();
+  const { trades, deleteTrade, clearAllTrades, importTrades } = useTrades();
 
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState("");
   const [sessionFilter, setSessionFilter] = useState("");
-  const [trades, setTrades] = useState(() => getTrades());
+  const [tagFilter, setTagFilter] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [page, setPage] = useState(1);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    trades.forEach((t) => t.tags?.forEach((tag) => set.add(tag)));
+    return Array.from(set).sort();
+  }, [trades]);
 
   const filtered = useMemo(() => {
-    return trades.filter((trade) => {
+    const result = trades.filter((trade) => {
       if (search.trim() && !trade.pair.toLowerCase().includes(search.toLowerCase())) {
         return false;
       }
@@ -43,33 +76,107 @@ export default function TradeLog() {
       if (sessionFilter && trade.session !== (sessionFilter as SessionType)) {
         return false;
       }
+      if (tagFilter && !trade.tags?.includes(tagFilter)) {
+        return false;
+      }
       return true;
     });
-  }, [trades, search, resultFilter, sessionFilter]);
+
+    const dir = sortDir === "asc" ? 1 : -1;
+    result.sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        return aVal.localeCompare(bVal) * dir;
+      }
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return (aVal - bVal) * dir;
+      }
+      return 0;
+    });
+    return result;
+  }, [trades, search, resultFilter, sessionFilter, tagFilter, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const paged = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, safePage]);
+
+  function handleSortChange(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   function handleDelete(id: string) {
     deleteTrade(id);
-    setTrades((prev) => prev.filter((t) => t.id !== id));
   }
 
-  function handleExport() {
-    const blob = new Blob([JSON.stringify(trades, null, 2)], {
-      type: "application/json",
-    });
+  function download(content: string, mime: string, filename: string) {
+    const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `tradelog-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
+  function handleExportJson() {
+    download(
+      JSON.stringify(trades, null, 2),
+      "application/json",
+      `tradelog-export-${new Date().toISOString().slice(0, 10)}.json`,
+    );
+  }
+
+  function handleExportCsv() {
+    download(
+      tradesToCsv(trades),
+      "text/csv",
+      `tradelog-export-${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+  }
+
+  function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = parseImportFile(String(reader.result), file.name);
+        if (parsed.length === 0) {
+          setImportError("No trades found in the selected file.");
+          setImportMessage(null);
+          return;
+        }
+        const added = importTrades(parsed);
+        setImportMessage(
+          added > 0
+            ? `Imported ${added} trade${added === 1 ? "" : "s"}.`
+            : "All trades in the file already exist.",
+        );
+        setImportError(null);
+      } catch {
+        setImportError("Could not read the file. Use a TradeLog JSON export or CSV.");
+        setImportMessage(null);
+      }
+    };
+    reader.readAsText(file);
+  }
+
   function handleClearAll() {
     clearAllTrades();
-    setTrades([]);
     setShowClearModal(false);
+    setPage(1);
   }
 
   const [showClearModal, setShowClearModal] = useState(false);
@@ -98,12 +205,18 @@ export default function TradeLog() {
           type="text"
           placeholder="Search by pair..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className={`${inputClass} w-full sm:w-56`}
         />
         <select
           value={resultFilter}
-          onChange={(e) => setResultFilter(e.target.value)}
+          onChange={(e) => {
+            setResultFilter(e.target.value);
+            setPage(1);
+          }}
           className={`${inputClass} w-full sm:w-40`}
         >
           {RESULTS.map((r) => (
@@ -114,7 +227,10 @@ export default function TradeLog() {
         </select>
         <select
           value={sessionFilter}
-          onChange={(e) => setSessionFilter(e.target.value)}
+          onChange={(e) => {
+            setSessionFilter(e.target.value);
+            setPage(1);
+          }}
           className={`${inputClass} w-full sm:w-40`}
         >
           {SESSIONS.map((s) => (
@@ -123,10 +239,45 @@ export default function TradeLog() {
             </option>
           ))}
         </select>
+        <select
+          value={tagFilter}
+          onChange={(e) => {
+            setTagFilter(e.target.value);
+            setPage(1);
+          }}
+          className={`${inputClass} w-full sm:w-40`}
+        >
+          <option value="">All Tags</option>
+          {allTags.map((tag) => (
+            <option key={tag} value={tag}>
+              {tag}
+            </option>
+          ))}
+        </select>
+        <select
+          value={sortKey}
+          onChange={(e) => {
+            handleSortChange(e.target.value as SortKey);
+            setPage(1);
+          }}
+          className={`${inputClass} w-full sm:w-36`}
+        >
+          {SORTABLE.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {filtered.length > 0 ? (
-        <TradeTable trades={filtered} onDelete={handleDelete} />
+        <TradeTable
+          trades={paged}
+          onDelete={handleDelete}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSortChange={handleSortChange}
+        />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-700 py-16">
           <ClipboardList className="mb-4 h-12 w-12 text-slate-600" />
@@ -147,17 +298,72 @@ export default function TradeLog() {
         </div>
       )}
 
-      {/* Export & Clear — only show when there is data */}
+      {pageCount > 1 && filtered.length > 0 && (
+        <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+          <p className="text-xs text-slate-500">
+            Page {safePage} of {pageCount}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              disabled={safePage >= pageCount}
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
+      {importMessage && (
+        <p className="text-sm text-emerald-400">{importMessage}</p>
+      )}
+      {importError && <p className="text-sm text-rose-400">{importError}</p>}
+
       {trades.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export Trades JSON
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={handleExportJson}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export JSON
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Import
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.csv,application/json,text/csv"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+          </div>
           <button
             type="button"
             onClick={() => setShowClearModal(true)}
@@ -169,7 +375,6 @@ export default function TradeLog() {
         </div>
       )}
 
-      {/* Clear All Confirmation Modal */}
       {showClearModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="mx-4 w-full max-w-sm rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-xl">

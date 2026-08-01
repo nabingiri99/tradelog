@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
-
-const STORAGE_KEY = "tradelog.checklist";
+import { useAuth } from "../lib/authStore";
 
 const ITEMS = [
   { id: "session", label: "Trading Session active?" },
@@ -16,9 +15,9 @@ const ITEMS = [
   { id: "news", label: "High-impact news avoided within 30 minutes?" },
 ] as const;
 
-function loadState(): Record<string, boolean> {
+function loadState(key: string): Record<string, boolean> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, boolean>;
   } catch {
@@ -26,13 +25,21 @@ function loadState(): Record<string, boolean> {
   }
 }
 
-function saveState(state: Record<string, boolean>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function saveState(key: string, state: Record<string, boolean>) {
+  localStorage.setItem(key, JSON.stringify(state));
 }
 
 export default function RulesChecklist() {
+  const { user } = useAuth();
+  const storageKey = user ? `tradelog.checklist.${user.email}` : "tradelog.checklist";
+  return <KeyedChecklist key={storageKey} storageKey={storageKey} />;
+}
+
+function KeyedChecklist({ storageKey }: { storageKey: string }) {
   const navigate = useNavigate();
-  const [checked, setChecked] = useState<Record<string, boolean>>(loadState);
+  const [checked, setChecked] = useState<Record<string, boolean>>(() =>
+    loadState(storageKey),
+  );
 
   const total = ITEMS.length;
   const done = ITEMS.filter((item) => checked[item.id]).length;
@@ -42,14 +49,14 @@ export default function RulesChecklist() {
   function toggle(id: string) {
     setChecked((prev) => {
       const next = { ...prev, [id]: !prev[id] };
-      saveState(next);
+      saveState(storageKey, next);
       return next;
     });
   }
 
   function resetAll() {
     setChecked({});
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKey);
   }
 
   return (

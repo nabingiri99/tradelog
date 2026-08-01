@@ -19,5 +19,6 @@ export interface Trade {
   result: ResultType;
   rr: number;
   notes?: string;
+  tags?: string[];
   isValidRuleTrade: boolean;
 }
