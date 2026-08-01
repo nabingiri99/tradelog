@@ -5,7 +5,9 @@ import TradeLog from "./pages/TradeLog";
 import AddEditTrade from "./pages/AddEditTrade";
 import RulesChecklist from "./pages/RulesChecklist";
 import BacktestProgress from "./pages/BacktestProgress";
+import ChartBacktest from "./pages/ChartBacktest";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import { useAuth } from "./lib/authStore";
 
 function Layout() {
@@ -45,6 +47,8 @@ export default function App() {
             <Route path="/edit/:id" element={<AddEditTrade />} />
             <Route path="/checklist" element={<RulesChecklist />} />
             <Route path="/backtest" element={<BacktestProgress />} />
+            <Route path="/backtest/chart" element={<ChartBacktest />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

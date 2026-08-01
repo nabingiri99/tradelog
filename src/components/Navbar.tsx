@@ -10,6 +10,8 @@ import {
   X,
   LineChart,
   LogOut,
+  UserRound,
+  ChartCandlestick,
 } from "lucide-react";
 import { useAuth } from "../lib/authStore";
 
@@ -19,6 +21,8 @@ const navItems = [
   { to: "/add", label: "Add Trade", icon: PlusCircle },
   { to: "/checklist", label: "Rules Checklist", icon: CheckSquare },
   { to: "/backtest", label: "Backtest Progress", icon: TrendingUp },
+  { to: "/backtest/chart", label: "Chart Backtest", icon: ChartCandlestick },
+  { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -62,10 +66,22 @@ export default function Navbar() {
     <>
       {/* Mobile top bar */}
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900 px-4 lg:hidden">
-        <div className="flex items-center gap-2">
-          <LineChart className="h-6 w-6 text-emerald-400" aria-hidden="true" />
-          <span className="text-lg font-semibold text-slate-100">TradeLog</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOpen(false);
+            navigate("/");
+          }}
+          className="flex items-center gap-2"
+          aria-label="Go to dashboard"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600">
+            <LineChart className="h-4 w-4 text-white" aria-hidden="true" />
+          </span>
+          <span className="bg-gradient-to-r from-indigo-300 to-emerald-300 bg-clip-text text-lg font-semibold text-transparent">
+            TradeLog
+          </span>
+        </button>
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
@@ -95,10 +111,19 @@ export default function Navbar() {
           "lg:static lg:z-auto",
         ].join(" ")}
       >
-        <div className="mb-8 hidden items-center gap-2 lg:flex">
-          <LineChart className="h-7 w-7 text-emerald-400" aria-hidden="true" />
-          <span className="text-xl font-semibold text-slate-100">TradeLog</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="mb-8 hidden items-center gap-2.5 lg:flex"
+          aria-label="Go to dashboard"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600">
+            <LineChart className="h-5 w-5 text-white" aria-hidden="true" />
+          </span>
+          <span className="bg-gradient-to-r from-indigo-300 to-emerald-300 bg-clip-text text-xl font-semibold text-transparent">
+            TradeLog
+          </span>
+        </button>
         <div className="mt-14 flex-1 lg:mt-0">
           <NavLinks onNavigate={() => setMobileOpen(false)} />
         </div>

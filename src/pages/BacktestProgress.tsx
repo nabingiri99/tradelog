@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Target, BarChart3, TrendingUp, Trophy, Flag } from "lucide-react";
 import { useTrades } from "../lib/TradeContext";
-
-const TARGET = 50;
+import { useSettings } from "../lib/settingsStore";
 
 const MILESTONES = [
   { count: 10, label: "Starter", icon: Flag },
@@ -13,6 +12,9 @@ const MILESTONES = [
 export default function BacktestProgress() {
   const navigate = useNavigate();
   const { trades } = useTrades();
+  const { settings } = useSettings();
+
+  const TARGET = settings.backtestGoal;
 
   const total = trades.length;
   const pct = Math.min(Math.round((total / TARGET) * 100), 100);

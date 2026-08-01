@@ -21,6 +21,8 @@ export interface AuthContextValue {
   user: CurrentUser | null;
   login: (email: string, password: string, remember: boolean) => Promise<AuthResult>;
   register: (name: string, email: string, password: string) => Promise<AuthResult>;
+  updateProfile: (name: string) => Promise<AuthResult>;
+  changePassword: (current: string, next: string) => Promise<AuthResult>;
   logout: () => void;
 }
 

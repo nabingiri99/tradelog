@@ -20,5 +20,8 @@ export interface Trade {
   rr: number;
   notes?: string;
   tags?: string[];
+  emotion?: string;
+  reason?: string;
+  screenshot?: string;
   isValidRuleTrade: boolean;
 }

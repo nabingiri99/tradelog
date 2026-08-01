@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   AuthContext,
   type AuthContextValue,
+  type AuthResult,
   type CurrentUser,
   type UserAccount,
   clearSession,
@@ -68,7 +69,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
 
-    return { user, login, register, logout };
+    async function updateProfile(name: string): Promise<AuthResult> {
+      const cleanName = name.trim();
+      if (!cleanName) return { ok: false, error: "Name is required." };
+      if (!user) return { ok: false, error: "Not signed in." };
+      const accounts = loadAccounts();
+      const account = accounts[user.email];
+      if (!account) return { ok: false, error: "Account not found." };
+      account.name = cleanName;
+      saveAccounts(accounts);
+      setUser({ email: account.email, name: account.name });
+      return { ok: true };
+    }
+
+    async function changePassword(
+      current: string,
+      next: string,
+    ): Promise<AuthResult> {
+      if (!user) return { ok: false, error: "Not signed in." };
+      if (next.length < 6) {
+        return { ok: false, error: "New password must be at least 6 characters." };
+      }
+      const accounts = loadAccounts();
+      const account = accounts[user.email];
+      if (!account) return { ok: false, error: "Account not found." };
+      const currentHash = await hashPassword(current);
+      if (currentHash !== account.passwordHash) {
+        return { ok: false, error: "Current password is incorrect." };
+      }
+      account.passwordHash = await hashPassword(next);
+      saveAccounts(accounts);
+      return { ok: true };
+    }
+
+    return { user, login, register, updateProfile, changePassword, logout };
   }, [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

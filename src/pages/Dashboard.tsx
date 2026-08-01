@@ -9,6 +9,12 @@ import {
   LineChart,
   Trophy,
   AlertOctagon,
+  Percent,
+  Gauge,
+  TrendingDown,
+  Flame,
+  Crown,
+  Skull,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -61,6 +67,106 @@ export default function Dashboard() {
         : 0;
 
     return { total, closed: closed.length, wins: wins.length, losses: losses.length, breaks: breaks.length, winRate, totalR, avgR };
+  }, [trades]);
+
+  const advanced = useMemo(() => {
+    const closed = trades
+      .filter((t) => t.result !== "Open")
+      .map((t) => ({
+        ...t,
+        contribution:
+          t.result === "Win" ? t.rr : t.result === "Loss" ? -1 : 0,
+      }));
+
+    const grossProfit = closed
+      .filter((t) => t.result === "Win")
+      .reduce((s, t) => s + t.rr, 0);
+    const grossLoss = closed.filter((t) => t.result === "Loss").length;
+    const profitFactor =
+      grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? grossProfit : null;
+
+    const expectancy = closed.length > 0 ? stats.totalR / closed.length : 0;
+
+    let running = 0;
+    let peak = 0;
+    let maxDrawdown = 0;
+    for (const t of closed) {
+      running += t.contribution;
+      peak = Math.max(peak, running);
+      maxDrawdown = Math.max(maxDrawdown, peak - running);
+    }
+
+    let bestWinStreak = 0;
+    let bestLossStreak = 0;
+    let currentWinStreak = 0;
+    let currentLossStreak = 0;
+    let curWin = 0;
+    let curLoss = 0;
+    for (const t of closed) {
+      if (t.result === "Win") {
+        curWin += 1;
+        curLoss = 0;
+        bestWinStreak = Math.max(bestWinStreak, curWin);
+      } else if (t.result === "Loss") {
+        curLoss += 1;
+        curWin = 0;
+        bestLossStreak = Math.max(bestLossStreak, curLoss);
+      } else {
+        curWin = 0;
+        curLoss = 0;
+      }
+    }
+    const lastResult = closed[closed.length - 1]?.result;
+    if (lastResult === "Win") currentWinStreak = curWin;
+    if (lastResult === "Loss") currentLossStreak = curLoss;
+
+    const bestTrade = closed
+      .filter((t) => t.result === "Win")
+      .sort((a, b) => b.rr - a.rr)[0];
+    const worstTrade = closed
+      .filter((t) => t.result === "Loss")
+      .sort((a, b) => a.contribution - b.contribution)[0];
+
+    return {
+      profitFactor,
+      expectancy,
+      maxDrawdown,
+      bestWinStreak,
+      bestLossStreak,
+      currentWinStreak,
+      currentLossStreak,
+      bestTrade,
+      worstTrade,
+    };
+  }, [trades, stats.totalR]);
+
+  const monthlyData = useMemo(() => {
+    const map = new Map<
+      string,
+      { trades: number; wins: number; losses: number; netR: number }
+    >();
+    for (const t of trades) {
+      if (t.result === "Open") continue;
+      const key = t.date.slice(0, 7);
+      const entry = map.get(key) ?? { trades: 0, wins: 0, losses: 0, netR: 0 };
+      entry.trades += 1;
+      if (t.result === "Win") {
+        entry.wins += 1;
+        entry.netR += t.rr;
+      } else if (t.result === "Loss") {
+        entry.losses += 1;
+        entry.netR -= 1;
+      }
+      map.set(key, entry);
+    }
+    return Array.from(map.entries())
+      .map(([month, s]) => ({
+        month,
+        ...s,
+        winRate:
+          s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
   }, [trades]);
 
   const sessionData = useMemo(() => {
@@ -179,6 +285,60 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Advanced Stat Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Profit Factor"
+          value={
+            advanced.profitFactor !== null
+              ? advanced.profitFactor.toFixed(2)
+              : "—"
+          }
+          icon={<Percent className="h-4 w-4" />}
+          subtext="Gross profit / gross loss"
+          trend={
+            advanced.profitFactor !== null && advanced.profitFactor >= 1
+              ? "up"
+              : advanced.profitFactor !== null && advanced.profitFactor > 0
+                ? "down"
+                : null
+          }
+        />
+        <StatCard
+          title="Expectancy"
+          value={
+            stats.closed > 0 ? `${advanced.expectancy.toFixed(2)}R` : "—"
+          }
+          icon={<Gauge className="h-4 w-4" />}
+          subtext="Avg R per closed trade"
+          trend={
+            advanced.expectancy > 0 ? "up" : advanced.expectancy < 0 ? "down" : null
+          }
+        />
+        <StatCard
+          title="Max Drawdown"
+          value={stats.closed > 0 ? `-${advanced.maxDrawdown.toFixed(2)}R` : "—"}
+          icon={<TrendingDown className="h-4 w-4" />}
+          subtext="Worst peak-to-trough"
+          trend={null}
+        />
+        <StatCard
+          title="Best / Worst Streak"
+          value={`${advanced.bestWinStreak}W / ${advanced.bestLossStreak}L`}
+          icon={<Flame className="h-4 w-4" />}
+          subtext={
+            advanced.currentWinStreak > 0
+              ? `Currently ${advanced.currentWinStreak}W in a row`
+              : advanced.currentLossStreak > 0
+                ? `Currently ${advanced.currentLossStreak}L in a row`
+                : "No active streak"
+          }
+          trend={
+            advanced.currentWinStreak > 0 ? "up" : advanced.currentLossStreak > 0 ? "down" : null
+          }
+        />
+      </div>
+
       {/* Charts */}
       <div className="space-y-6">
         <EquityCurveChart trades={trades} />
@@ -232,6 +392,104 @@ export default function Dashboard() {
               />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Best / Worst Trades */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border border-emerald-800/40 bg-emerald-500/5 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
+              <Crown className="h-4 w-4" />
+              Best Trade
+            </div>
+            {advanced.bestTrade ? (
+              <div className="text-sm text-slate-300">
+                <p className="font-medium text-slate-100">
+                  {advanced.bestTrade.pair}
+                </p>
+                <p className="text-xs text-slate-500">{advanced.bestTrade.date}</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-400">
+                  +{advanced.bestTrade.rr.toFixed(2)}R
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No winning trades yet.</p>
+            )}
+          </div>
+          <div className="rounded-lg border border-rose-800/40 bg-rose-500/5 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-300">
+              <Skull className="h-4 w-4" />
+              Worst Trade
+            </div>
+            {advanced.worstTrade ? (
+              <div className="text-sm text-slate-300">
+                <p className="font-medium text-slate-100">
+                  {advanced.worstTrade.pair}
+                </p>
+                <p className="text-xs text-slate-500">{advanced.worstTrade.date}</p>
+                <p className="mt-1 text-lg font-semibold text-rose-400">
+                  -{Math.abs(advanced.worstTrade.contribution).toFixed(2)}R
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No losing trades yet.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Monthly Breakdown */}
+        <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+          <h3 className="mb-4 text-sm font-semibold text-slate-300">
+            Monthly Breakdown
+          </h3>
+          {monthlyData.length === 0 ? (
+            <p className="text-sm text-slate-500">No closed trades yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-800">
+                <thead>
+                  <tr>
+                    <th className={pairHeaderClass}>Month</th>
+                    <th className={pairHeaderClass}>Trades</th>
+                    <th className={pairHeaderClass}>W / L</th>
+                    <th className={pairHeaderClass}>Win Rate</th>
+                    <th className={pairHeaderClass}>Net R</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70">
+                  {monthlyData.map((m) => (
+                    <tr key={m.month}>
+                      <td className={`${pairCellClass} font-medium text-slate-100`}>
+                        {m.month}
+                      </td>
+                      <td className={pairCellClass}>{m.trades}</td>
+                      <td className={pairCellClass}>
+                        <span className="text-emerald-400">{m.wins}</span>
+                        {" / "}
+                        <span className="text-rose-400">{m.losses}</span>
+                      </td>
+                      <td className={pairCellClass}>
+                        {m.winRate > 0 || m.losses > 0 ? `${m.winRate}%` : "—"}
+                      </td>
+                      <td className={pairCellClass}>
+                        <span
+                          className={`font-medium ${
+                            m.netR > 0
+                              ? "text-emerald-400"
+                              : m.netR < 0
+                                ? "text-rose-400"
+                                : "text-slate-300"
+                          }`}
+                        >
+                          {m.netR > 0 ? "+" : ""}
+                          {m.netR.toFixed(2)}R
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Pair Breakdown */}

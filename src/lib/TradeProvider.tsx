@@ -30,6 +30,7 @@ function KeyedTradeProvider({
   );
 
   const [trades, setTrades] = useState<Trade[]>(() => storage.getTrades());
+  const [lastDeleted, setLastDeleted] = useState<Trade[]>([]);
 
   const value = useMemo(() => {
     function addTrade(trade: Omit<Trade, "id">): Trade {
@@ -45,7 +46,17 @@ function KeyedTradeProvider({
     }
 
     function deleteTrade(id: string) {
+      const existing = storage.getTrade(id);
       storage.deleteTrade(id);
+      setLastDeleted(existing ? [existing] : []);
+      setTrades(storage.getTrades());
+    }
+
+    function deleteTrades(ids: string[]) {
+      if (ids.length === 0) return;
+      const removed = storage.getTrades().filter((t) => ids.includes(t.id));
+      ids.forEach((id) => storage.deleteTrade(id));
+      setLastDeleted(removed);
       setTrades(storage.getTrades());
     }
 
@@ -63,7 +74,9 @@ function KeyedTradeProvider({
     }
 
     function clearAllTrades() {
+      const all = storage.getTrades();
       storage.clearAllTrades();
+      setLastDeleted(all);
       setTrades([]);
     }
 
@@ -73,17 +86,28 @@ function KeyedTradeProvider({
       return merged;
     }
 
+    function undoDelete(): number {
+      const restored = lastDeleted.filter((t) => !storage.getTrade(t.id));
+      restored.forEach((t) => storage.addTrade(t));
+      setLastDeleted([]);
+      setTrades(storage.getTrades());
+      return restored.length;
+    }
+
     return {
       trades,
       getTrade: (id: string) => storage.getTrade(id),
       addTrade,
       updateTrade,
       deleteTrade,
+      deleteTrades,
       duplicateTrade,
       clearAllTrades,
       importTrades,
+      canUndo: lastDeleted.length > 0,
+      undoDelete,
     };
-  }, [trades, storage]);
+  }, [trades, storage, lastDeleted]);
 
   return <TradeContext.Provider value={value}>{children}</TradeContext.Provider>;
 }

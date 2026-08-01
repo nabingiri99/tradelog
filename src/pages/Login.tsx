@@ -66,13 +66,23 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-900 px-4">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 right-0 h-80 w-80 rounded-full bg-emerald-600/10 blur-3xl"
+      />
+      <div className="relative w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600/20">
-            <LineChart className="h-7 w-7 text-emerald-400" />
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-indigo-900/40">
+            <LineChart className="h-7 w-7 text-white" />
           </span>
-          <h1 className="text-2xl font-semibold text-slate-100">TradeLog</h1>
+          <h1 className="bg-gradient-to-r from-indigo-300 to-emerald-300 bg-clip-text text-3xl font-bold text-transparent">
+            TradeLog
+          </h1>
           <p className="text-sm text-slate-500">Your personal trading journal</p>
         </div>
 

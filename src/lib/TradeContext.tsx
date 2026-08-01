@@ -7,9 +7,12 @@ export interface TradeContextValue {
   addTrade: (trade: Omit<Trade, "id">) => Trade;
   updateTrade: (trade: Trade) => Trade;
   deleteTrade: (id: string) => void;
+  deleteTrades: (ids: string[]) => void;
   duplicateTrade: (id: string) => Trade | undefined;
   clearAllTrades: () => void;
   importTrades: (trades: Trade[]) => number;
+  canUndo: boolean;
+  undoDelete: () => number;
 }
 
 export const TradeContext = createContext<TradeContextValue | null>(null);

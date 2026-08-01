@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { X } from "lucide-react";
 import { useTrades } from "../lib/TradeContext";
+import { fileToCompressedDataUrl } from "../lib/image";
 import type {
   DirectionType,
   ResultType,
@@ -14,6 +16,26 @@ const SESSIONS: SessionType[] = ["London", "NewYork", "Overlap", "Other"];
 const DIRECTIONS: DirectionType[] = ["Buy", "Sell"];
 const ZONE_TYPES: ZoneType[] = ["Supply", "Demand"];
 const RESULTS: ResultType[] = ["Open", "Win", "Loss", "BreakEven"];
+const EMOTIONS = [
+  { value: "Calm", label: "Calm" },
+  { value: "Confident", label: "Confident" },
+  { value: "Neutral", label: "Neutral" },
+  { value: "Anxious", label: "Anxious" },
+  { value: "Fearful", label: "Fearful" },
+  { value: "Greedy", label: "Greedy" },
+] as const;
+const REASONS = [
+  { value: "", label: "Select reason (optional)" },
+  { value: "Followed plan", label: "Followed plan" },
+  { value: "Good discipline", label: "Good discipline" },
+  { value: "FOMO entry", label: "FOMO entry" },
+  { value: "Moved stop loss", label: "Moved stop loss" },
+  { value: "Early exit", label: "Early exit" },
+  { value: "Held too long", label: "Held too long" },
+  { value: "Ignored rules", label: "Ignored rules" },
+  { value: "News spike", label: "News spike" },
+  { value: "Other", label: "Other" },
+] as const;
 
 const CUSTOM_PAIR = "__custom__";
 
@@ -81,6 +103,10 @@ export default function TradeForm({
   );
   const [notes, setNotes] = useState(initialTrade?.notes ?? "");
   const [tagsText, setTagsText] = useState(initialTrade?.tags?.join(", ") ?? "");
+  const [emotion, setEmotion] = useState(initialTrade?.emotion ?? "");
+  const [reason, setReason] = useState(initialTrade?.reason ?? "");
+  const [screenshot, setScreenshot] = useState(initialTrade?.screenshot ?? "");
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
   const [isValidRuleTrade, setIsValidRuleTrade] = useState(
     initialTrade?.isValidRuleTrade ?? validFromQuery,
   );
@@ -150,6 +176,9 @@ export default function TradeForm({
       rr: rr ?? 0,
       notes: notes.trim() || undefined,
       tags: tags.length > 0 ? tags : undefined,
+      emotion: emotion || undefined,
+      reason: reason || undefined,
+      screenshot: screenshot || undefined,
       isValidRuleTrade,
     };
 
@@ -162,6 +191,27 @@ export default function TradeForm({
     setError(null);
     onSubmitSuccess();
     navigate("/log");
+  }
+
+  async function handleScreenshotFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setScreenshotError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setScreenshotError("Image is too large (max 10 MB).");
+      return;
+    }
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setScreenshot(dataUrl);
+      setScreenshotError(null);
+    } catch {
+      setScreenshotError("Could not process the image.");
+    }
   }
 
   return (
@@ -325,6 +375,43 @@ export default function TradeForm({
           />
         </div>
 
+        <div>
+          <label className={labelClass} htmlFor="emotion">
+            Emotion
+          </label>
+          <select
+            id="emotion"
+            className={inputClass}
+            value={emotion}
+            onChange={(e) => setEmotion(e.target.value)}
+          >
+            <option value="">Select emotion (optional)</option>
+            {EMOTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="reason">
+            Win / Loss Reason
+          </label>
+          <select
+            id="reason"
+            className={inputClass}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          >
+            {REASONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex items-end">
           <div className="w-full rounded-lg border border-slate-700 bg-slate-800/60 px-4 py-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">
@@ -335,6 +422,42 @@ export default function TradeForm({
             </p>
           </div>
         </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Trade Screenshot</label>
+        {screenshot ? (
+          <div className="relative inline-block">
+            <img
+              src={screenshot}
+              alt="Trade screenshot"
+              className="max-h-56 rounded-lg border border-slate-700"
+            />
+            <button
+              type="button"
+              title="Remove screenshot"
+              onClick={() => setScreenshot("")}
+              className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-slate-300 hover:bg-rose-600 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-600 px-4 py-2.5 text-sm text-slate-400 hover:border-slate-500 hover:text-slate-200">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleScreenshotFile}
+            />
+            Upload chart screenshot
+          </label>
+        )}
+        {screenshotError && (
+          <p role="alert" className="mt-1 text-sm text-rose-400">
+            {screenshotError}
+          </p>
+        )}
       </div>
 
       <div>

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2, CheckCircle2, AlertTriangle, Copy, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Trash2, CheckCircle2, AlertTriangle, Copy, ArrowUp, ArrowDown, Image as ImageIcon } from "lucide-react";
 import type { Trade } from "../types/Trade";
 import { useTrades } from "../lib/TradeContext";
 
@@ -12,6 +12,9 @@ export interface TradeTableProps {
   sortKey: SortKey;
   sortDir: SortDir;
   onSortChange: (key: SortKey) => void;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleSelectAll: (checked: boolean) => void;
 }
 
 const headerClass =
@@ -75,15 +78,57 @@ function Tags({ tags }: { tags?: string[] }) {
   );
 }
 
+function EmotionBadge({ emotion }: { emotion?: string }) {
+  if (!emotion) return <span className="text-xs text-slate-600">—</span>;
+  const tone =
+    emotion === "Calm" || emotion === "Confident"
+      ? "bg-emerald-500/15 text-emerald-400"
+      : emotion === "Neutral"
+        ? "bg-slate-500/15 text-slate-400"
+        : "bg-amber-500/15 text-amber-400";
+  return (
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>
+      {emotion}
+    </span>
+  );
+}
+
+function ReasonText({ reason }: { reason?: string }) {
+  if (!reason) return <span className="text-xs text-slate-600">—</span>;
+  return <span className="text-xs text-slate-400">{reason}</span>;
+}
+
+function ScreenshotLink({ src, pair }: { src?: string; pair: string }) {
+  if (!src) return <span className="text-xs text-slate-600">—</span>;
+  return (
+    <a
+      href={src}
+      target="_blank"
+      rel="noreferrer"
+      title={`Open screenshot for ${pair}`}
+      className="inline-flex items-center gap-1 text-xs font-medium text-indigo-400 hover:text-indigo-300"
+    >
+      <ImageIcon className="h-3.5 w-3.5" />
+      View
+    </a>
+  );
+}
+
 export default function TradeTable({
   trades,
   onDelete,
   sortKey,
   sortDir,
   onSortChange,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
 }: TradeTableProps) {
   const navigate = useNavigate();
   const { updateTrade, duplicateTrade } = useTrades();
+
+  const allVisibleSelected = trades.length > 0 && trades.every((t) => selectedIds.has(t.id));
+  const someVisibleSelected = trades.some((t) => selectedIds.has(t.id));
 
   const columns: Array<{ key: SortKey; label: string; align?: "right" }> = [
     { key: "date", label: "Date" },
@@ -103,6 +148,18 @@ export default function TradeTable({
       <table className="min-w-full divide-y divide-slate-800">
         <thead className="bg-slate-800/50">
           <tr>
+            <th className={`${headerClass} w-10`}>
+              <input
+                type="checkbox"
+                aria-label="Select all visible trades"
+                checked={allVisibleSelected}
+                ref={(el) => {
+                  if (el) el.indeterminate = someVisibleSelected && !allVisibleSelected;
+                }}
+                onChange={(e) => onToggleSelectAll(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-indigo-500"
+              />
+            </th>
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -125,12 +182,29 @@ export default function TradeTable({
             ))}
             <th className={`${headerClass} text-left`}>Rules</th>
             <th className={`${headerClass} text-left`}>Tags</th>
+            <th className={`${headerClass} text-left`}>Emotion</th>
+            <th className={`${headerClass} text-left`}>Reason</th>
+            <th className={`${headerClass} text-left`}>Shot</th>
             <th className={`${headerClass} text-right`}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800">
           {trades.map((trade) => (
-            <tr key={trade.id} className="transition-colors hover:bg-slate-800/40">
+            <tr
+              key={trade.id}
+              className={`transition-colors hover:bg-slate-800/40 ${
+                selectedIds.has(trade.id) ? "bg-indigo-500/5" : ""
+              }`}
+            >
+              <td className={cellClass}>
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${trade.pair} ${trade.date}`}
+                  checked={selectedIds.has(trade.id)}
+                  onChange={() => onToggleSelect(trade.id)}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-indigo-500"
+                />
+              </td>
               <td className={cellClass}>{trade.date}</td>
               <td className={`${cellClass} font-medium text-slate-100`}>
                 {trade.pair}
@@ -175,6 +249,15 @@ export default function TradeTable({
               </td>
               <td className={cellClass}>
                 <Tags tags={trade.tags} />
+              </td>
+              <td className={cellClass}>
+                <EmotionBadge emotion={trade.emotion} />
+              </td>
+              <td className={cellClass}>
+                <ReasonText reason={trade.reason} />
+              </td>
+              <td className={cellClass}>
+                <ScreenshotLink src={trade.screenshot} pair={trade.pair} />
               </td>
               <td className={`${cellClass} text-right`}>
                 <div className="flex items-center justify-end gap-1">

@@ -8,6 +8,8 @@ import {
   X,
   Upload,
   FileSpreadsheet,
+  Tag,
+  Undo2,
 } from "lucide-react";
 import TradeTable, { type SortKey, type SortDir } from "../components/TradeTable";
 import { useTrades } from "../lib/TradeContext";
@@ -46,15 +48,27 @@ const SORTABLE: Array<{ value: SortKey; label: string }> = [
 
 export default function TradeLog() {
   const navigate = useNavigate();
-  const { trades, deleteTrade, clearAllTrades, importTrades } = useTrades();
+  const {
+    trades,
+    deleteTrade,
+    deleteTrades,
+    updateTrade,
+    clearAllTrades,
+    importTrades,
+    canUndo,
+    undoDelete,
+  } = useTrades();
 
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState("");
   const [sessionFilter, setSessionFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,6 +93,12 @@ export default function TradeLog() {
       if (tagFilter && !trade.tags?.includes(tagFilter)) {
         return false;
       }
+      if (fromDate && trade.date < fromDate) {
+        return false;
+      }
+      if (toDate && trade.date > toDate) {
+        return false;
+      }
       return true;
     });
 
@@ -95,7 +115,7 @@ export default function TradeLog() {
       return 0;
     });
     return result;
-  }, [trades, search, resultFilter, sessionFilter, tagFilter, sortKey, sortDir]);
+  }, [trades, search, resultFilter, sessionFilter, tagFilter, fromDate, toDate, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -113,8 +133,60 @@ export default function TradeLog() {
     }
   }
 
+  function resetPage() {
+    setPage(1);
+  }
+
+  function handleToggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleToggleSelectAll(checked: boolean) {
+    setSelectedIds(new Set(checked ? paged.map((t) => t.id) : []));
+  }
+
+  function handleBulkTag() {
+    if (selectedIds.size === 0) return;
+    const tag = window.prompt("Tag to apply to selected trades (e.g. revenge, news):");
+    if (!tag) return;
+    const clean = tag.trim();
+    if (!clean) return;
+    trades.forEach((t) => {
+      if (selectedIds.has(t.id)) {
+        const tags = [...(t.tags ?? []), clean];
+        updateTrade({ ...t, tags });
+      }
+    });
+    setSelectedIds(new Set());
+  }
+
+  function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (
+      window.confirm(
+        `Delete ${selectedIds.size} selected trade${selectedIds.size === 1 ? "" : "s"}?`,
+      )
+    ) {
+      deleteTrades(Array.from(selectedIds));
+      setSelectedIds(new Set());
+    }
+  }
+
   function handleDelete(id: string) {
     deleteTrade(id);
+  }
+
+  function handleUndo() {
+    undoDelete();
+    setPage(1);
   }
 
   function download(content: string, mime: string, filename: string) {
@@ -165,8 +237,12 @@ export default function TradeLog() {
             : "All trades in the file already exist.",
         );
         setImportError(null);
-      } catch {
-        setImportError("Could not read the file. Use a TradeLog JSON export or CSV.");
+      } catch (err) {
+        setImportError(
+          err instanceof Error
+            ? err.message
+            : "Could not read the file. Use a TradeLog JSON/CSV export or a broker CSV.",
+        );
         setImportMessage(null);
       }
     };
@@ -176,6 +252,7 @@ export default function TradeLog() {
   function handleClearAll() {
     clearAllTrades();
     setShowClearModal(false);
+    setSelectedIds(new Set());
     setPage(1);
   }
 
@@ -207,17 +284,37 @@ export default function TradeLog() {
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setPage(1);
+            resetPage();
           }}
-          className={`${inputClass} w-full sm:w-56`}
+          className={`${inputClass} w-full sm:w-48`}
+        />
+        <input
+          type="date"
+          aria-label="From date"
+          value={fromDate}
+          onChange={(e) => {
+            setFromDate(e.target.value);
+            resetPage();
+          }}
+          className={`${inputClass} w-full sm:w-40`}
+        />
+        <input
+          type="date"
+          aria-label="To date"
+          value={toDate}
+          onChange={(e) => {
+            setToDate(e.target.value);
+            resetPage();
+          }}
+          className={`${inputClass} w-full sm:w-40`}
         />
         <select
           value={resultFilter}
           onChange={(e) => {
             setResultFilter(e.target.value);
-            setPage(1);
+            resetPage();
           }}
-          className={`${inputClass} w-full sm:w-40`}
+          className={`${inputClass} w-full sm:w-36`}
         >
           {RESULTS.map((r) => (
             <option key={r.value} value={r.value}>
@@ -229,9 +326,9 @@ export default function TradeLog() {
           value={sessionFilter}
           onChange={(e) => {
             setSessionFilter(e.target.value);
-            setPage(1);
+            resetPage();
           }}
-          className={`${inputClass} w-full sm:w-40`}
+          className={`${inputClass} w-full sm:w-36`}
         >
           {SESSIONS.map((s) => (
             <option key={s.value} value={s.value}>
@@ -243,9 +340,9 @@ export default function TradeLog() {
           value={tagFilter}
           onChange={(e) => {
             setTagFilter(e.target.value);
-            setPage(1);
+            resetPage();
           }}
-          className={`${inputClass} w-full sm:w-40`}
+          className={`${inputClass} w-full sm:w-36`}
         >
           <option value="">All Tags</option>
           {allTags.map((tag) => (
@@ -258,9 +355,9 @@ export default function TradeLog() {
           value={sortKey}
           onChange={(e) => {
             handleSortChange(e.target.value as SortKey);
-            setPage(1);
+            resetPage();
           }}
-          className={`${inputClass} w-full sm:w-36`}
+          className={`${inputClass} w-full sm:w-32`}
         >
           {SORTABLE.map((s) => (
             <option key={s.value} value={s.value}>
@@ -270,6 +367,41 @@ export default function TradeLog() {
         </select>
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-indigo-700/50 bg-indigo-500/10 px-4 py-2.5">
+          <span className="text-sm font-medium text-indigo-200">
+            {selectedIds.size} selected
+          </span>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleBulkTag}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-slate-600 hover:text-slate-100"
+            >
+              <Tag className="h-3.5 w-3.5" />
+              Add Tag
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-400 hover:border-rose-600 hover:text-rose-300"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete Selected
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="rounded-lg p-1.5 text-slate-500 hover:text-slate-300"
+              aria-label="Clear selection"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {filtered.length > 0 ? (
         <TradeTable
           trades={paged}
@@ -277,6 +409,9 @@ export default function TradeLog() {
           sortKey={sortKey}
           sortDir={sortDir}
           onSortChange={handleSortChange}
+          selectedIds={selectedIds}
+          onToggleSelect={handleToggleSelect}
+          onToggleSelectAll={handleToggleSelectAll}
         />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-700 py-16">
@@ -321,6 +456,21 @@ export default function TradeLog() {
               Next
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Undo toast */}
+      {canUndo && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-700/50 bg-emerald-500/10 px-4 py-2.5">
+          <p className="text-sm text-emerald-300">Trades deleted. Restore them?</p>
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            Undo
+          </button>
         </div>
       )}
 
