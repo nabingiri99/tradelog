@@ -9,6 +9,7 @@ export type ResultType = "Win" | "Loss" | "BreakEven" | "Open";
 export interface Trade {
   id: string;
   date: string;
+  entryTime?: string;
   pair: string;
   session: SessionType;
   direction: DirectionType;
@@ -20,6 +21,7 @@ export interface Trade {
   rr: number;
   notes?: string;
   tags?: string[];
+  mindset?: { before: string; after: string };
   emotion?: string;
   reason?: string;
   screenshot?: string;

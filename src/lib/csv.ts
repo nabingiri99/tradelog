@@ -3,6 +3,7 @@ import type { Trade } from "../types/Trade";
 const HEADERS = [
   "id",
   "date",
+  "entryTime",
   "pair",
   "session",
   "direction",
@@ -128,6 +129,7 @@ export function parseCsv(content: string): Trade[] {
     trades.push({
       id: row.cell("id") || crypto.randomUUID(),
       date: row.cell("date") || new Date().toISOString().slice(0, 10),
+      entryTime: row.cell("entryTime") || undefined,
       pair,
       session: ["London", "NewYork", "Overlap", "Other"].includes(session)
         ? session
@@ -230,10 +232,15 @@ export function parseBrokerCsv(content: string): Trade[] {
     const dateRaw = dateCol ? row.cell(dateCol) : "";
     const date =
       dateRaw.length >= 10 ? dateRaw.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const timeMatch = /(\d{1,2}):(\d{2})/.exec(dateRaw);
+    const entryTime = timeMatch
+      ? `${String(Number(timeMatch[1])).padStart(2, "0")}:${timeMatch[2]}`
+      : undefined;
 
     trades.push({
       id: crypto.randomUUID(),
       date,
+      entryTime,
       pair: pairRaw.toUpperCase(),
       session: "Other",
       direction: guessDirection(typeCol ? row.cell(typeCol) : "", "", String(entry)),

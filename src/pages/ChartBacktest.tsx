@@ -54,8 +54,8 @@ interface ClosedTrade {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+  "w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-indigo-500";
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300";
 
 function fmt(v: number): string {
   return v >= 100 ? v.toFixed(1) : v.toFixed(4);
@@ -405,24 +405,24 @@ export default function ChartBacktest() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Chart Backtest
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Replay historical candles and journal the trades, TradingView-style
           </p>
         </div>
         <button
           type="button"
           onClick={() => navigate("/backtest")}
-          className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+          className="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
         >
           View Backtest Progress →
         </button>
       </div>
 
       {/* Data controls */}
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
         <div>
           <label className={labelClass} htmlFor="symbol">
             Symbol
@@ -487,7 +487,7 @@ export default function ChartBacktest() {
         <button
           type="button"
           onClick={() => setShowCsv((s) => !s)}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300 hover:border-slate-600 hover:text-slate-100"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-100"
         >
           <Upload className="h-4 w-4" />
           OHLC CSV
@@ -500,8 +500,8 @@ export default function ChartBacktest() {
       </div>
 
       {showCsv && (
-        <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-          <p className="text-sm text-slate-400">
+        <div className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Paste OHLC data (columns: time, open, high, low, close[, volume]) to
             backtest any instrument, e.g. a TradingView export.
           </p>
@@ -513,7 +513,7 @@ export default function ChartBacktest() {
             className={`${inputClass} font-mono text-xs`}
           />
           {csvError && (
-            <p className="flex items-center gap-1 text-sm text-rose-400">
+            <p className="flex items-center gap-1 text-sm text-rose-600 dark:text-rose-400">
               <AlertCircle className="h-4 w-4" />
               {csvError}
             </p>
@@ -529,7 +529,7 @@ export default function ChartBacktest() {
       )}
 
       {error && (
-        <p className="flex items-center gap-1 text-sm text-rose-400">
+        <p className="flex items-center gap-1 text-sm text-rose-600 dark:text-rose-400">
           <AlertCircle className="h-4 w-4" />
           {error}
         </p>
@@ -538,12 +538,12 @@ export default function ChartBacktest() {
       {/* Chart */}
       {data.length > 0 && (
         <>
-          <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-300">
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {pairLabel} · {interval}
               </h2>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
+              <div className="flex items-center gap-4 text-xs text-slate-600 dark:text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <span className="h-0.5 w-4 bg-cyan-400" /> Entry
                 </span>
@@ -563,13 +563,18 @@ export default function ChartBacktest() {
               focusIndex={viewEnd}
               interval={interval}
               overlays={overlays}
+              replayMode
+              onCandleClick={(index) => {
+                setCursor(index);
+                setPlaying(false);
+              }}
             />
           </div>
 
           {/* Replay controls */}
-          <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold text-slate-300">Replay</h2>
+              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Replay</h2>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -578,7 +583,7 @@ export default function ChartBacktest() {
                     setCursor(0);
                     setPlaying(false);
                   }}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <SkipBack className="h-4 w-4" />
                 </button>
@@ -589,7 +594,7 @@ export default function ChartBacktest() {
                     setCursor(viewEnd - 1);
                     setPlaying(false);
                   }}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -612,7 +617,7 @@ export default function ChartBacktest() {
                     setCursor(viewEnd + 1);
                     setPlaying(false);
                   }}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -623,7 +628,7 @@ export default function ChartBacktest() {
                     setCursor(data.length - 1);
                     setPlaying(false);
                   }}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <SkipForward className="h-4 w-4" />
                 </button>
@@ -631,7 +636,7 @@ export default function ChartBacktest() {
                   type="button"
                   title="Reset session"
                   onClick={resetSession}
-                  className="rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
@@ -649,7 +654,7 @@ export default function ChartBacktest() {
               className="w-full accent-indigo-500"
               aria-label="Replay position"
             />
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
               <span>
                 {viewEnd + 1} / {data.length}
               </span>
@@ -663,8 +668,8 @@ export default function ChartBacktest() {
           </div>
 
           {/* Trade panel */}
-          <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-            <h2 className="mb-3 text-sm font-semibold text-slate-300">Trade</h2>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+            <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Trade</h2>
             {!position ? (
               <div className="flex flex-wrap items-end gap-3">
                 <div className="w-36">
@@ -716,7 +721,7 @@ export default function ChartBacktest() {
                   <p className="text-xs text-slate-500">Position</p>
                   <p
                     className={`text-sm font-semibold ${
-                      position.direction === "Buy" ? "text-emerald-400" : "text-rose-400"
+                      position.direction === "Buy" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                     }`}
                   >
                     {position.direction} @ {fmt(position.entry)}
@@ -724,7 +729,7 @@ export default function ChartBacktest() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">SL / TP</p>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
                     {fmt(position.sl)} / {fmt(position.tp)}
                   </p>
                 </div>
@@ -732,7 +737,7 @@ export default function ChartBacktest() {
                   <p className="text-xs text-slate-500">Unrealized</p>
                   <p
                     className={`text-sm font-semibold ${
-                      unrealizedR >= 0 ? "text-emerald-400" : "text-rose-400"
+                      unrealizedR >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                     }`}
                   >
                     {unrealizedR >= 0 ? "+" : ""}
@@ -742,43 +747,43 @@ export default function ChartBacktest() {
                 <button
                   type="button"
                   onClick={closeNow}
-                  className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-slate-600"
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
                 >
                   Close @ {current ? fmt(current.close) : "—"}
                 </button>
               </div>
             )}
             {message && (
-              <p className="mt-3 text-sm text-indigo-300">{message}</p>
+              <p className="mt-3 text-sm text-indigo-700 dark:text-indigo-300">{message}</p>
             )}
           </div>
 
           {/* Session stats */}
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <Target className="h-4 w-4" />
                 Trades
               </div>
-              <p className="mt-2 text-2xl font-semibold text-slate-100">
+              <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
                 {stats.total}
               </p>
               <p className="text-xs text-slate-500">
                 {stats.wins}W / {stats.losses}L
               </p>
             </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <TrendingUp className="h-4 w-4" />
                 Net R
               </div>
               <p
                 className={`mt-2 text-2xl font-semibold ${
                   stats.netR > 0
-                    ? "text-emerald-400"
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : stats.netR < 0
-                      ? "text-rose-400"
-                      : "text-slate-100"
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-slate-900 dark:text-slate-100"
                 }`}
               >
                 {stats.netR > 0 ? "+" : ""}
@@ -786,12 +791,12 @@ export default function ChartBacktest() {
               </p>
               <p className="text-xs text-slate-500">This session</p>
             </div>
-            <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <Trophy className="h-4 w-4" />
                 Win Rate
               </div>
-              <p className="mt-2 text-2xl font-semibold text-slate-100">
+              <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
                 {stats.total > 0 ? `${stats.winRate}%` : "—"}
               </p>
               <p className="text-xs text-slate-500">Closed trades</p>
@@ -800,9 +805,9 @@ export default function ChartBacktest() {
 
           {/* Closed trades */}
           {closedTrades.length > 0 && (
-            <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold text-slate-300">
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                   Session Trades
                 </h2>
                 <button
@@ -815,54 +820,54 @@ export default function ChartBacktest() {
                 </button>
               </div>
               {saveMessage && (
-                <p className="mb-3 text-sm text-emerald-400">{saveMessage}</p>
+                <p className="mb-3 text-sm text-emerald-600 dark:text-emerald-400">{saveMessage}</p>
               )}
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-800">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
                   <thead>
                     <tr>
                       {["Entry", "Exit", "Dir", "R", "Result", ""].map((h) => (
                         <th
                           key={h}
-                          className="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400"
+                          className="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400"
                         >
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/70">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
                     {closedTrades.map((t) => (
                       <tr key={t.id}>
-                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-300">
+                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
                           {fmt(t.entry)}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-300">
+                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
                           {fmt(t.exit)}
                         </td>
                         <td
                           className={`whitespace-nowrap px-3 py-2 text-sm ${
-                            t.direction === "Buy" ? "text-emerald-400" : "text-rose-400"
+                            t.direction === "Buy" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                           }`}
                         >
                           {t.direction}
                         </td>
                         <td
                           className={`whitespace-nowrap px-3 py-2 text-sm font-medium ${
-                            t.rr > 0 ? "text-emerald-400" : t.rr < 0 ? "text-rose-400" : "text-slate-300"
+                            t.rr > 0 ? "text-emerald-600 dark:text-emerald-400" : t.rr < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-700 dark:text-slate-300"
                           }`}
                         >
                           {t.rr > 0 ? "+" : ""}
                           {t.rr.toFixed(2)}R
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-300">
+                        <td className="whitespace-nowrap px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
                           {t.result}
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-right">
                           <button
                             type="button"
                             onClick={() => saveTrade(t)}
-                            className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
+                            className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:text-indigo-300"
                           >
                             Save
                           </button>
@@ -878,9 +883,9 @@ export default function ChartBacktest() {
       )}
 
       {data.length === 0 && !loading && !error && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-700 py-20">
-          <Loader2 className="mb-4 h-10 w-10 animate-spin text-slate-600" />
-          <h3 className="text-base font-medium text-slate-300">Loading market data...</h3>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 py-20">
+          <Loader2 className="mb-4 h-10 w-10 animate-spin text-slate-400 dark:text-slate-600" />
+          <h3 className="text-base font-medium text-slate-700 dark:text-slate-300">Loading market data...</h3>
         </div>
       )}
     </div>

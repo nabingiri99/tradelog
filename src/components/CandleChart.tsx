@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Candle } from "../lib/market";
 import { formatCandleTime } from "../lib/market";
+import { useTheme } from "../lib/themeStore";
 
 export interface ChartOverlay {
   kind: "entry" | "sl" | "tp";
@@ -15,6 +16,8 @@ export interface CandleChartProps {
   interval: string;
   overlays?: ChartOverlay[];
   height?: number;
+  replayMode?: boolean;
+  onCandleClick?: (index: number) => void;
 }
 
 interface Crosshair {
@@ -30,7 +33,6 @@ const VOL_HEIGHT = 44;
 
 const UP = "#10b981";
 const DOWN = "#f43f5e";
-const GRID = "#1e293b";
 const TEXT = "#64748b";
 const FOCUS = "#818cf8";
 
@@ -44,9 +46,17 @@ export default function CandleChart({
   interval,
   overlays = [],
   height = 460,
+  replayMode = false,
+  onCandleClick,
 }: CandleChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { resolved } = useTheme();
+  const isDark = resolved === "dark";
+  const gridColor = isDark ? "#1e293b" : "#cbd5e1";
+  const crosshairColor = isDark ? "rgba(226,232,240,0.4)" : "rgba(71,85,105,0.5)";
+  const legendBg = isDark ? "rgba(15,23,42,0.85)" : "rgba(255,255,255,0.9)";
+  const legendText = isDark ? "#cbd5e1" : "#334155";
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [windowSize, setWindowSize] = useState(120);
   const [offset, setOffset] = useState(0);
@@ -94,7 +104,10 @@ export default function CandleChart({
     const plotH = h - PAD_TOP - PAD_BOTTOM - VOL_HEIGHT;
     if (plotW <= 0 || plotH <= 0 || candles.length === 0) return;
 
-    const visible = candles.slice(off, off + win);
+    const visibleEnd = replayMode
+      ? Math.min(focusIndex, off + win - 1)
+      : off + win - 1;
+    const visible = candles.slice(off, visibleEnd + 1);
     if (visible.length === 0) return;
 
     let minPrice = Math.min(...visible.map((c) => c.low));
@@ -114,7 +127,7 @@ export default function CandleChart({
     ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
 
     // Grid + y labels
-    ctx.strokeStyle = GRID;
+    ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
     ctx.fillStyle = TEXT;
     const rows = 5;
@@ -138,7 +151,7 @@ export default function CandleChart({
     });
 
     // Horizontal grid line separating volume
-    ctx.strokeStyle = GRID;
+    ctx.strokeStyle = gridColor;
     ctx.beginPath();
     ctx.moveTo(PAD_LEFT, volY0);
     ctx.lineTo(PAD_LEFT + plotW, volY0);
@@ -216,7 +229,7 @@ export default function CandleChart({
       const c = candles[crosshair.index];
       const x = xOf(crosshair.index);
       const y = yOf(crosshair.price);
-      ctx.strokeStyle = "rgba(226,232,240,0.4)";
+      ctx.strokeStyle = crosshairColor;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
       ctx.moveTo(x, PAD_TOP);
@@ -235,16 +248,16 @@ export default function CandleChart({
         `V ${c.volume >= 1000 ? (c.volume / 1000).toFixed(1) + "k" : c.volume.toFixed(0)}`,
       ];
       let lx = PAD_LEFT + 8;
-      ctx.fillStyle = "rgba(15,23,42,0.85)";
+      ctx.fillStyle = legendBg;
       ctx.fillRect(PAD_LEFT + 4, PAD_TOP + 4, legend.join("  ").length * 6.6 + 12, 18);
       legend.forEach((part) => {
         const isC = part.startsWith("C ");
-        ctx.fillStyle = isC ? (up ? UP : DOWN) : "#cbd5e1";
+        ctx.fillStyle = isC ? (up ? UP : DOWN) : legendText;
         ctx.fillText(part, lx, PAD_TOP + 17);
         lx += part.length * 6.6 + 8;
       });
     }
-  }, [candles, off, win, crosshair, overlays, focusIndex, size, interval]);
+  }, [candles, off, win, crosshair, overlays, focusIndex, size, interval, replayMode, isDark, gridColor, crosshairColor, legendBg, legendText]);
 
   function handleWheel(e: React.WheelEvent) {
     e.preventDefault();
@@ -313,6 +326,7 @@ export default function CandleChart({
       const p = Math.max(0, Math.min(1, (y - PAD_TOP) / plotH));
       const price = maxPrice - p * (maxPrice - minPrice);
       setCrosshair({ index, price });
+      onCandleClick?.(index);
     }
   }
 

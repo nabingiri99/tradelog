@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { X } from "lucide-react";
 import { useTrades } from "../lib/TradeContext";
 import { fileToCompressedDataUrl } from "../lib/image";
+import { useAuth } from "../lib/authStore";
+import { loadRules } from "../lib/rulesStore";
 import type {
   DirectionType,
   ResultType,
@@ -44,15 +46,15 @@ function today(): string {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+  "w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-indigo-500";
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300";
 
 function toggleClass(active: boolean): string {
   return [
     "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
     active
       ? "border-indigo-500 bg-indigo-500/15 text-indigo-300"
-      : "border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-100",
+      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
   ].join(" ");
 }
 
@@ -70,7 +72,12 @@ export default function TradeForm({
   const [searchParams] = useSearchParams();
   const validFromQuery = searchParams.get("valid") === "true";
 
+  const { user } = useAuth();
+  const rulesKey = user ? `tradelog.rules.${user.email}` : "tradelog.rules";
+  const rules = useMemo(() => loadRules(rulesKey), [rulesKey]);
+
   const [date, setDate] = useState(initialTrade?.date ?? today());
+  const [entryTime, setEntryTime] = useState(initialTrade?.entryTime ?? "");
   const initialPairIsCommon =
     !initialTrade ||
     COMMON_PAIRS.includes(initialTrade.pair as (typeof COMMON_PAIRS)[number]);
@@ -110,6 +117,15 @@ export default function TradeForm({
   const [isValidRuleTrade, setIsValidRuleTrade] = useState(
     initialTrade?.isValidRuleTrade ?? validFromQuery,
   );
+  const [ruleChecks, setRuleChecks] = useState<Record<string, boolean>>(() => {
+    if (initialTrade?.isValidRuleTrade || validFromQuery) {
+      return Object.fromEntries(rules.map((rule) => [rule.id, true]));
+    }
+    return {};
+  });
+  const rulesCheckedCount = rules.filter((rule) => ruleChecks[rule.id]).length;
+  const allRulesChecked =
+    rules.length > 0 && rulesCheckedCount === rules.length;
   const [error, setError] = useState<string | null>(null);
 
   const pair = pairSelect === CUSTOM_PAIR ? customPair.trim() : pairSelect;
@@ -131,6 +147,25 @@ export default function TradeForm({
     const reward = Math.abs(targetValue - entryValue);
     return Math.round((reward / risk) * 100) / 100;
   }, [entry, stopLoss, target]);
+
+  function toggleRule(id: string) {
+    setRuleChecks((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      setIsValidRuleTrade(
+        rules.length > 0 && rules.every((rule) => next[rule.id]),
+      );
+      return next;
+    });
+  }
+
+  function handleMasterRules(checked: boolean) {
+    setIsValidRuleTrade(checked);
+    setRuleChecks(
+      checked
+        ? Object.fromEntries(rules.map((rule) => [rule.id, true]))
+        : {},
+    );
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -165,6 +200,7 @@ export default function TradeForm({
 
     const payload = {
       date,
+      entryTime: entryTime || undefined,
       pair: pair.toUpperCase(),
       session,
       direction,
@@ -228,6 +264,19 @@ export default function TradeForm({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="entryTime">
+            Entry Time <span className="font-normal text-slate-500">(optional)</span>
+          </label>
+          <input
+            id="entryTime"
+            type="time"
+            className={inputClass}
+            value={entryTime}
+            onChange={(e) => setEntryTime(e.target.value)}
           />
         </div>
 
@@ -413,8 +462,8 @@ export default function TradeForm({
         </div>
 
         <div className="flex items-end">
-          <div className="w-full rounded-lg border border-slate-700 bg-slate-800/60 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 px-4 py-3">
+            <p className="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
               Risk : Reward
             </p>
             <p className="text-2xl font-semibold text-violet-400">
@@ -431,19 +480,19 @@ export default function TradeForm({
             <img
               src={screenshot}
               alt="Trade screenshot"
-              className="max-h-56 rounded-lg border border-slate-700"
+              className="max-h-56 rounded-lg border border-slate-300 dark:border-slate-700"
             />
             <button
               type="button"
               title="Remove screenshot"
               onClick={() => setScreenshot("")}
-              className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-slate-300 hover:bg-rose-600 hover:text-white"
+              className="absolute -right-2 -top-2 rounded-full bg-slate-700 p-1 text-slate-700 dark:text-slate-300 hover:bg-rose-600 hover:text-white"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
         ) : (
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-600 px-4 py-2.5 text-sm text-slate-400 hover:border-slate-500 hover:text-slate-200">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-600 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:border-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
             <input
               type="file"
               accept="image/*"
@@ -454,7 +503,7 @@ export default function TradeForm({
           </label>
         )}
         {screenshotError && (
-          <p role="alert" className="mt-1 text-sm text-rose-400">
+          <p role="alert" className="mt-1 text-sm text-rose-600 dark:text-rose-400">
             {screenshotError}
           </p>
         )}
@@ -487,18 +536,84 @@ export default function TradeForm({
         />
       </div>
 
-      <label className="flex items-center gap-3 text-sm text-slate-300">
-        <input
-          type="checkbox"
-          className="h-4 w-4 rounded border-slate-600 bg-slate-800"
-          checked={isValidRuleTrade}
-          onChange={(e) => setIsValidRuleTrade(e.target.checked)}
-        />
-        Followed All Rules
-      </label>
+      <div>
+        <span className={labelClass}>Trading Rules</span>
+        {rules.length > 0 ? (
+          <div className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                {rulesCheckedCount} / {rules.length} rules followed
+              </p>
+              {!allRulesChecked && (
+                <button
+                  type="button"
+                  onClick={() => handleMasterRules(true)}
+                  className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
+                >
+                  Check all
+                </button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {rules.map((rule) => {
+                const isChecked = ruleChecks[rule.id] ?? false;
+                return (
+                  <label
+                    key={rule.id}
+                    className="flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/40"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleRule(rule.id)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-white dark:bg-slate-800 accent-indigo-500"
+                    />
+                    <span>
+                      <span
+                        className={`block text-sm ${
+                          isChecked
+                            ? "text-slate-600 dark:text-slate-400 line-through"
+                            : "text-slate-800 dark:text-slate-200"
+                        }`}
+                      >
+                        {rule.label}
+                      </span>
+                      {rule.description && (
+                        <span className="block text-xs text-slate-500">
+                          {rule.description}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <label className="mt-3 flex cursor-pointer items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-3 text-sm text-slate-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                checked={isValidRuleTrade}
+                onChange={(e) => handleMasterRules(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-600 bg-white dark:bg-slate-800 accent-indigo-500"
+              />
+              Followed All Rules
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 px-3 py-2.5">
+            <p className="text-sm text-slate-600 dark:text-slate-400">No rules configured yet.</p>
+            <button
+              type="button"
+              onClick={() => navigate("/checklist")}
+              className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
+            >
+              Create rules
+            </button>
+          </div>
+        )}
+      </div>
 
       {error && (
-        <p role="alert" className="text-sm text-rose-400">
+        <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">
           {error}
         </p>
       )}
@@ -513,7 +628,7 @@ export default function TradeForm({
         <button
           type="button"
           onClick={() => navigate("/log")}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:text-slate-100"
+          className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
         >
           Cancel
         </button>

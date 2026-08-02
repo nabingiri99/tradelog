@@ -10,18 +10,18 @@ export default function AddEditTrade() {
   if (id && !initialTrade) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">Edit Trade</h1>
-        <p className="mt-2 text-slate-400">Trade not found.</p>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Edit Trade</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">Trade not found.</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-100">
+      <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
         {initialTrade ? "Edit Trade" : "Add Trade"}
       </h1>
-      <p className="mt-2 mb-6 text-slate-400">
+      <p className="mt-2 mb-6 text-slate-600 dark:text-slate-400">
         {initialTrade
           ? "Update the details of this trade."
           : "Log a new trade with entry, stop loss and target."}

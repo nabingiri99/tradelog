@@ -28,6 +28,7 @@ import {
 } from "recharts";
 import StatCard from "../components/StatCard";
 import EquityCurveChart from "../components/EquityCurveChart";
+import { cssVar } from "../lib/themeColors";
 import { useTrades } from "../lib/TradeContext";
 import type { SessionType } from "../types/Trade";
 
@@ -39,8 +40,8 @@ const SESSION_LABELS: Record<SessionType, string> = {
 };
 
 const pairHeaderClass =
-  "whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-400";
-const pairCellClass = "whitespace-nowrap px-3 py-2.5 text-sm text-slate-300";
+  "whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400";
+const pairCellClass = "whitespace-nowrap px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -211,9 +212,9 @@ export default function Dashboard() {
 
   if (trades.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-700 py-20">
-        <LineChart className="mb-4 h-14 w-14 text-slate-600" />
-        <h2 className="text-xl font-semibold text-slate-300">
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 py-20">
+        <LineChart className="mb-4 h-14 w-14 text-slate-400 dark:text-slate-600" />
+        <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300">
           Welcome to TradeLog
         </h2>
         <p className="mt-2 max-w-md text-center text-sm text-slate-500">
@@ -233,11 +234,18 @@ export default function Dashboard() {
     );
   }
 
+  const gridColor = cssVar("--tlog-chart-grid", "#cbd5e1");
+  const axisColor = cssVar("--tlog-chart-axis", "#94a3b8");
+  const tickColor = cssVar("--tlog-chart-tick", "#64748b");
+  const tooltipBg = cssVar("--tlog-chart-tooltip-bg", "#ffffff");
+  const tooltipBorder = cssVar("--tlog-chart-tooltip-border", "#e2e8f0");
+  const tooltipText = cssVar("--tlog-chart-tooltip-text", "#0f172a");
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Overview of your trading performance
         </p>
       </div>
@@ -344,8 +352,8 @@ export default function Dashboard() {
         <EquityCurveChart trades={trades} />
 
         {/* Session Breakdown Bar Chart */}
-        <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-          <h3 className="mb-4 text-sm font-semibold text-slate-300">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+          <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
             Win / Loss by Session
           </h3>
           <ResponsiveContainer width="100%" height={260}>
@@ -353,30 +361,30 @@ export default function Dashboard() {
               data={sessionData}
               margin={{ top: 5, right: 12, left: 0, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis
                 dataKey="session"
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: tickColor, fontSize: 12 }}
                 tickLine={false}
-                axisLine={{ stroke: "#334155" }}
+                axisLine={{ stroke: axisColor }}
               />
               <YAxis
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: tickColor, fontSize: 12 }}
                 tickLine={false}
-                axisLine={{ stroke: "#334155" }}
+                axisLine={{ stroke: axisColor }}
                 allowDecimals={false}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1e293b",
-                  border: "1px solid #334155",
+                  background: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
                   borderRadius: "8px",
                   fontSize: "12px",
-                  color: "#e2e8f0",
+                  color: tooltipText,
                 }}
               />
               <Legend
-                wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }}
+                wrapperStyle={{ fontSize: "12px", color: tickColor }}
               />
               <Bar
                 dataKey="Wins"
@@ -396,18 +404,18 @@ export default function Dashboard() {
 
         {/* Best / Worst Trades */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-emerald-800/40 bg-emerald-500/5 p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
+          <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-500/5 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               <Crown className="h-4 w-4" />
               Best Trade
             </div>
             {advanced.bestTrade ? (
-              <div className="text-sm text-slate-300">
-                <p className="font-medium text-slate-100">
+              <div className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="font-medium text-slate-900 dark:text-slate-100">
                   {advanced.bestTrade.pair}
                 </p>
                 <p className="text-xs text-slate-500">{advanced.bestTrade.date}</p>
-                <p className="mt-1 text-lg font-semibold text-emerald-400">
+                <p className="mt-1 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                   +{advanced.bestTrade.rr.toFixed(2)}R
                 </p>
               </div>
@@ -415,18 +423,18 @@ export default function Dashboard() {
               <p className="text-sm text-slate-500">No winning trades yet.</p>
             )}
           </div>
-          <div className="rounded-lg border border-rose-800/40 bg-rose-500/5 p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-300">
+          <div className="rounded-lg border border-rose-300 bg-rose-50 dark:border-rose-800/40 dark:bg-rose-500/5 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
               <Skull className="h-4 w-4" />
               Worst Trade
             </div>
             {advanced.worstTrade ? (
-              <div className="text-sm text-slate-300">
-                <p className="font-medium text-slate-100">
+              <div className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="font-medium text-slate-900 dark:text-slate-100">
                   {advanced.worstTrade.pair}
                 </p>
                 <p className="text-xs text-slate-500">{advanced.worstTrade.date}</p>
-                <p className="mt-1 text-lg font-semibold text-rose-400">
+                <p className="mt-1 text-lg font-semibold text-rose-600 dark:text-rose-400">
                   -{Math.abs(advanced.worstTrade.contribution).toFixed(2)}R
                 </p>
               </div>
@@ -437,15 +445,15 @@ export default function Dashboard() {
         </div>
 
         {/* Monthly Breakdown */}
-        <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-          <h3 className="mb-4 text-sm font-semibold text-slate-300">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+          <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
             Monthly Breakdown
           </h3>
           {monthlyData.length === 0 ? (
             <p className="text-sm text-slate-500">No closed trades yet.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-800">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
                 <thead>
                   <tr>
                     <th className={pairHeaderClass}>Month</th>
@@ -455,17 +463,17 @@ export default function Dashboard() {
                     <th className={pairHeaderClass}>Net R</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/70">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
                   {monthlyData.map((m) => (
                     <tr key={m.month}>
-                      <td className={`${pairCellClass} font-medium text-slate-100`}>
+                      <td className={`${pairCellClass} font-medium text-slate-900 dark:text-slate-100`}>
                         {m.month}
                       </td>
                       <td className={pairCellClass}>{m.trades}</td>
                       <td className={pairCellClass}>
-                        <span className="text-emerald-400">{m.wins}</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">{m.wins}</span>
                         {" / "}
-                        <span className="text-rose-400">{m.losses}</span>
+                        <span className="text-rose-600 dark:text-rose-400">{m.losses}</span>
                       </td>
                       <td className={pairCellClass}>
                         {m.winRate > 0 || m.losses > 0 ? `${m.winRate}%` : "—"}
@@ -474,10 +482,10 @@ export default function Dashboard() {
                         <span
                           className={`font-medium ${
                             m.netR > 0
-                              ? "text-emerald-400"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : m.netR < 0
-                                ? "text-rose-400"
-                                : "text-slate-300"
+                                ? "text-rose-600 dark:text-rose-400"
+                                : "text-slate-700 dark:text-slate-300"
                           }`}
                         >
                           {m.netR > 0 ? "+" : ""}
@@ -493,15 +501,15 @@ export default function Dashboard() {
         </div>
 
         {/* Pair Breakdown */}
-        <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-          <h3 className="mb-4 text-sm font-semibold text-slate-300">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+          <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
             Pair Breakdown (by Net R)
           </h3>
           {pairData.length === 0 ? (
             <p className="text-sm text-slate-500">No trades yet.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-800">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
                 <thead>
                   <tr>
                     <th className={pairHeaderClass}>Pair</th>
@@ -511,25 +519,25 @@ export default function Dashboard() {
                     <th className={pairHeaderClass}>Net R</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/70">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
                   {pairData.map((p) => (
                     <tr key={p.pair}>
                       <td className={pairCellClass}>
-                        <span className="flex items-center gap-2 font-medium text-slate-100">
+                        <span className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
                           {p === pairData[0] && p.netR > 0 && (
                             <Trophy className="h-3.5 w-3.5 text-amber-400" />
                           )}
                           {p === pairData[pairData.length - 1] && p.netR < 0 && (
-                            <AlertOctagon className="h-3.5 w-3.5 text-rose-400" />
+                            <AlertOctagon className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
                           )}
                           {p.pair}
                         </span>
                       </td>
                       <td className={pairCellClass}>{p.total}</td>
                       <td className={pairCellClass}>
-                        <span className="text-emerald-400">{p.wins}</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">{p.wins}</span>
                         {" / "}
-                        <span className="text-rose-400">{p.losses}</span>
+                        <span className="text-rose-600 dark:text-rose-400">{p.losses}</span>
                       </td>
                       <td className={pairCellClass}>
                         {p.winRate > 0 || p.losses > 0 ? `${p.winRate}%` : "—"}
@@ -538,10 +546,10 @@ export default function Dashboard() {
                         <span
                           className={`font-medium ${
                             p.netR > 0
-                              ? "text-emerald-400"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : p.netR < 0
-                                ? "text-rose-400"
-                                : "text-slate-300"
+                                ? "text-rose-600 dark:text-rose-400"
+                                : "text-slate-700 dark:text-slate-300"
                           }`}
                         >
                           {p.netR > 0 ? "+" : ""}

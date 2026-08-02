@@ -19,7 +19,7 @@ import type { ResultType, SessionType } from "../types/Trade";
 const PAGE_SIZE = 10;
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
+  "w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:bg-slate-800";
 
 const RESULTS: Array<{ value: string; label: string }> = [
   { value: "", label: "All Results" },
@@ -262,8 +262,8 @@ export default function TradeLog() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">Trade Log</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Trade Log</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {filtered.length} {filtered.length === 1 ? "trade" : "trades"} found
           </p>
         </div>
@@ -377,7 +377,7 @@ export default function TradeLog() {
             <button
               type="button"
               onClick={handleBulkTag}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-slate-600 hover:text-slate-100"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:text-slate-300 hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-100"
             >
               <Tag className="h-3.5 w-3.5" />
               Add Tag
@@ -385,7 +385,7 @@ export default function TradeLog() {
             <button
               type="button"
               onClick={handleBulkDelete}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-400 hover:border-rose-600 hover:text-rose-300"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:border-rose-600 hover:text-rose-300"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete Selected
@@ -414,9 +414,9 @@ export default function TradeLog() {
           onToggleSelectAll={handleToggleSelectAll}
         />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-700 py-16">
-          <ClipboardList className="mb-4 h-12 w-12 text-slate-600" />
-          <h3 className="text-lg font-medium text-slate-300">No trades found</h3>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 py-16 dark:border-slate-700">
+          <ClipboardList className="mb-4 h-12 w-12 text-slate-400 dark:text-slate-600" />
+          <h3 className="text-lg font-medium text-slate-700 dark:text-slate-300">No trades found</h3>
           <p className="mt-1 text-sm text-slate-500">
             {trades.length === 0
               ? "Start by logging your first trade."
@@ -434,7 +434,7 @@ export default function TradeLog() {
       )}
 
       {pageCount > 1 && filtered.length > 0 && (
-        <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+        <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
           <p className="text-xs text-slate-500">
             Page {safePage} of {pageCount}
           </p>
@@ -443,7 +443,7 @@ export default function TradeLog() {
               type="button"
               disabled={safePage <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400 hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Prev
             </button>
@@ -451,7 +451,7 @@ export default function TradeLog() {
               type="button"
               disabled={safePage >= pageCount}
               onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400 hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
             </button>
@@ -462,7 +462,7 @@ export default function TradeLog() {
       {/* Undo toast */}
       {canUndo && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-700/50 bg-emerald-500/10 px-4 py-2.5">
-          <p className="text-sm text-emerald-300">Trades deleted. Restore them?</p>
+          <p className="text-sm text-emerald-700 dark:text-emerald-300">Trades deleted. Restore them?</p>
           <button
             type="button"
             onClick={handleUndo}
@@ -475,17 +475,17 @@ export default function TradeLog() {
       )}
 
       {importMessage && (
-        <p className="text-sm text-emerald-400">{importMessage}</p>
+        <p className="text-sm text-emerald-600 dark:text-emerald-400">{importMessage}</p>
       )}
-      {importError && <p className="text-sm text-rose-400">{importError}</p>}
+      {importError && <p className="text-sm text-rose-600 dark:text-rose-400">{importError}</p>}
 
       {trades.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={handleExportCsv}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400 hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
               Export CSV
@@ -493,7 +493,7 @@ export default function TradeLog() {
             <button
               type="button"
               onClick={handleExportJson}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400 hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
             >
               <Download className="h-3.5 w-3.5" />
               Export JSON
@@ -501,7 +501,7 @@ export default function TradeLog() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-slate-600 hover:text-slate-200"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400 hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
             >
               <Upload className="h-3.5 w-3.5" />
               Import
@@ -517,7 +517,7 @@ export default function TradeLog() {
           <button
             type="button"
             onClick={() => setShowClearModal(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-400 hover:border-rose-600 hover:text-rose-300"
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-800 px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:border-rose-600 hover:text-rose-300"
           >
             <Trash2 className="h-3.5 w-3.5" />
             Clear All Data
@@ -527,9 +527,9 @@ export default function TradeLog() {
 
       {showClearModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-sm rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-sm rounded-lg border border-slate-300 bg-slate-50 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-100">
+              <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 Clear All Data?
               </h3>
               <button
@@ -540,7 +540,7 @@ export default function TradeLog() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               This will permanently delete all {trades.length} trade
               {trades.length === 1 ? "" : "s"}. This action cannot be undone.
             </p>
@@ -548,7 +548,7 @@ export default function TradeLog() {
               <button
                 type="button"
                 onClick={() => setShowClearModal(false)}
-                className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>

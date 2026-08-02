@@ -18,8 +18,8 @@ export interface TradeTableProps {
 }
 
 const headerClass =
-  "whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400";
-const cellClass = "whitespace-nowrap px-3 py-3 text-sm text-slate-200";
+  "whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400";
+const cellClass = "whitespace-nowrap px-3 py-3 text-sm text-slate-800 dark:text-slate-200";
 
 const SESSIONS: Record<string, string> = {
   London: "London",
@@ -36,8 +36,8 @@ function DirectionBadge({ direction }: { direction: Trade["direction"] }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
         isBuy
-          ? "bg-emerald-500/15 text-emerald-400"
-          : "bg-rose-500/15 text-rose-400"
+          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+          : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
       }`}
     >
       {direction}
@@ -48,14 +48,14 @@ function DirectionBadge({ direction }: { direction: Trade["direction"] }) {
 function RuleBadge({ valid }: { valid: boolean }) {
   if (valid) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Valid
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-rose-400">
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-400">
       <AlertTriangle className="h-3.5 w-3.5" />
       Invalid
     </span>
@@ -63,13 +63,13 @@ function RuleBadge({ valid }: { valid: boolean }) {
 }
 
 function Tags({ tags }: { tags?: string[] }) {
-  if (!tags || tags.length === 0) return <span className="text-xs text-slate-600">—</span>;
+  if (!tags || tags.length === 0) return <span className="text-xs text-slate-400 dark:text-slate-600">—</span>;
   return (
     <div className="flex max-w-[200px] flex-wrap gap-1">
       {tags.map((tag) => (
         <span
           key={tag}
-          className="rounded-full bg-slate-700/60 px-2 py-0.5 text-xs text-slate-300"
+          className="rounded-full bg-slate-700/60 px-2 py-0.5 text-xs text-slate-700 dark:text-slate-300"
         >
           {tag}
         </span>
@@ -79,12 +79,12 @@ function Tags({ tags }: { tags?: string[] }) {
 }
 
 function EmotionBadge({ emotion }: { emotion?: string }) {
-  if (!emotion) return <span className="text-xs text-slate-600">—</span>;
+  if (!emotion) return <span className="text-xs text-slate-400 dark:text-slate-600">—</span>;
   const tone =
     emotion === "Calm" || emotion === "Confident"
-      ? "bg-emerald-500/15 text-emerald-400"
+      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
       : emotion === "Neutral"
-        ? "bg-slate-500/15 text-slate-400"
+        ? "bg-slate-500/15 text-slate-600 dark:text-slate-400"
         : "bg-amber-500/15 text-amber-400";
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>
@@ -94,12 +94,12 @@ function EmotionBadge({ emotion }: { emotion?: string }) {
 }
 
 function ReasonText({ reason }: { reason?: string }) {
-  if (!reason) return <span className="text-xs text-slate-600">—</span>;
-  return <span className="text-xs text-slate-400">{reason}</span>;
+  if (!reason) return <span className="text-xs text-slate-400 dark:text-slate-600">—</span>;
+  return <span className="text-xs text-slate-600 dark:text-slate-400">{reason}</span>;
 }
 
 function ScreenshotLink({ src, pair }: { src?: string; pair: string }) {
-  if (!src) return <span className="text-xs text-slate-600">—</span>;
+  if (!src) return <span className="text-xs text-slate-400 dark:text-slate-600">—</span>;
   return (
     <a
       href={src}
@@ -144,9 +144,9 @@ export default function TradeTable({
   ];
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-800">
-      <table className="min-w-full divide-y divide-slate-800">
-        <thead className="bg-slate-800/50">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+      <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+        <thead className="bg-white dark:bg-slate-800/50">
           <tr>
             <th className={`${headerClass} w-10`}>
               <input
@@ -157,7 +157,7 @@ export default function TradeTable({
                   if (el) el.indeterminate = someVisibleSelected && !allVisibleSelected;
                 }}
                 onChange={(e) => onToggleSelectAll(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-indigo-500"
+                className="h-4 w-4 rounded border-slate-600 bg-white dark:bg-slate-800 accent-indigo-500"
               />
             </th>
             {columns.map((col) => (
@@ -168,7 +168,7 @@ export default function TradeTable({
                 <button
                   type="button"
                   onClick={() => onSortChange(col.key)}
-                  className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-slate-200"
+                  className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   {col.label}
                   {sortKey === col.key &&
@@ -188,11 +188,11 @@ export default function TradeTable({
             <th className={`${headerClass} text-right`}>Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800">
+        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
           {trades.map((trade) => (
             <tr
               key={trade.id}
-              className={`transition-colors hover:bg-slate-800/40 ${
+              className={`transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/40 ${
                 selectedIds.has(trade.id) ? "bg-indigo-500/5" : ""
               }`}
             >
@@ -202,11 +202,11 @@ export default function TradeTable({
                   aria-label={`Select ${trade.pair} ${trade.date}`}
                   checked={selectedIds.has(trade.id)}
                   onChange={() => onToggleSelect(trade.id)}
-                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-indigo-500"
+                  className="h-4 w-4 rounded border-slate-600 bg-white dark:bg-slate-800 accent-indigo-500"
                 />
               </td>
               <td className={cellClass}>{trade.date}</td>
-              <td className={`${cellClass} font-medium text-slate-100`}>
+              <td className={`${cellClass} font-medium text-slate-900 dark:text-slate-100`}>
                 {trade.pair}
               </td>
               <td className={cellClass}>{SESSIONS[trade.session] ?? trade.session}</td>
@@ -214,7 +214,7 @@ export default function TradeTable({
                 <DirectionBadge direction={trade.direction} />
               </td>
               <td className={cellClass}>
-                <span className="text-xs text-slate-400">{trade.zoneType}</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400">{trade.zoneType}</span>
               </td>
               <td className={cellClass}>{trade.entry}</td>
               <td className={cellClass}>{trade.stopLoss}</td>
@@ -230,7 +230,7 @@ export default function TradeTable({
                       result: e.target.value as Trade["result"],
                     })
                   }
-                  className="cursor-pointer rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-xs font-medium text-slate-200 outline-none focus:border-indigo-500"
+                  className="cursor-pointer rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-900 outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:bg-slate-800"
                 >
                   {RESULTS.map((r) => (
                     <option key={r} value={r}>
@@ -265,7 +265,7 @@ export default function TradeTable({
                     type="button"
                     title="Duplicate trade"
                     onClick={() => duplicateTrade(trade.id)}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-violet-400"
+                    className="rounded-lg p-1.5 text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-violet-400"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -273,7 +273,7 @@ export default function TradeTable({
                     type="button"
                     title="Edit trade"
                     onClick={() => navigate(`/edit/${trade.id}`)}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-indigo-400"
+                    className="rounded-lg p-1.5 text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-indigo-400"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
@@ -289,7 +289,7 @@ export default function TradeTable({
                         onDelete(trade.id);
                       }
                     }}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-rose-400"
+                    className="rounded-lg p-1.5 text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-rose-400"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

@@ -5,8 +5,8 @@ import { useAuth } from "../lib/authStore";
 import { useSettings } from "../lib/settingsStore";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500";
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-300";
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100";
+const labelClass = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300";
 
 function Section({
   icon,
@@ -18,9 +18,9 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-5">
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-200">
-        <span className="text-indigo-400">{icon}</span>
+    <div className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-800/50">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+        <span className="text-indigo-600 dark:text-indigo-400">{icon}</span>
         {title}
       </h2>
       {children}
@@ -31,7 +31,7 @@ function Section({
 function SuccessNote({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p className="mt-2 flex items-center gap-1 text-sm text-emerald-400">
+    <p className="mt-2 flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
       <CheckCircle2 className="h-4 w-4" />
       {message}
     </p>
@@ -100,8 +100,8 @@ export default function Profile() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-100">Profile</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Profile</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Manage your account and trading preferences
         </p>
       </div>
@@ -109,7 +109,7 @@ export default function Profile() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Section icon={<UserRound className="h-4 w-4" />} title="Account">
           <p className="mb-4 text-xs text-slate-500">
-            Email: <span className="text-slate-300">{user?.email}</span>
+            Email: <span className="text-slate-700 dark:text-slate-300">{user?.email}</span>
           </p>
           <form onSubmit={handleNameSubmit} className="space-y-3">
             <div>
@@ -125,7 +125,7 @@ export default function Profile() {
                 required
               />
             </div>
-            {nameError && <p className="text-sm text-rose-400">{nameError}</p>}
+            {nameError && <p className="text-sm text-rose-600 dark:text-rose-400">{nameError}</p>}
             <SuccessNote message={nameMsg} />
             <button
               type="submit"
@@ -181,7 +181,7 @@ export default function Profile() {
               />
             </div>
             {passwordError && (
-              <p className="text-sm text-rose-400">{passwordError}</p>
+              <p className="text-sm text-rose-600 dark:text-rose-400">{passwordError}</p>
             )}
             <SuccessNote message={passwordMsg} />
             <button

@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import type { Trade } from "../types/Trade";
+import { cssVar } from "../lib/themeColors";
 
 export interface EquityCurveChartProps {
   trades: Trade[];
@@ -38,15 +39,17 @@ function CustomTooltip({
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs shadow-xl">
-      <p className="text-slate-400">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:shadow-xl">
+      <p className="text-slate-500 dark:text-slate-400">
         #{p.tradeNumber} — {p.date}
       </p>
-      <p className="mt-0.5 font-medium text-slate-200">{p.pair}</p>
-      <p className="text-slate-400">
-        Result: <span className="text-slate-100">{p.result}</span>
+      <p className="mt-0.5 font-medium text-slate-900 dark:text-slate-200">
+        {p.pair}
       </p>
-      <p className="text-violet-400">
+      <p className="text-slate-500 dark:text-slate-400">
+        Result: <span className="text-slate-900 dark:text-slate-100">{p.result}</span>
+      </p>
+      <p className="text-violet-500 dark:text-violet-400">
         Cumulative R: {p.cumulativeR.toFixed(2)}
       </p>
     </div>
@@ -70,35 +73,39 @@ export default function EquityCurveChart({ trades }: EquityCurveChartProps) {
     return points;
   }, [trades]);
 
+  const gridColor = cssVar("--tlog-chart-grid", "#cbd5e1");
+  const axisColor = cssVar("--tlog-chart-axis", "#94a3b8");
+  const tickColor = cssVar("--tlog-chart-tick", "#64748b");
+
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-      <h3 className="mb-4 text-sm font-semibold text-slate-300">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-800/50">
+      <h3 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-300">
         Equity Curve (Cumulative R)
       </h3>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={data} margin={{ top: 5, right: 12, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis
             dataKey="tradeNumber"
-            tick={{ fill: "#94a3b8", fontSize: 12 }}
+            tick={{ fill: tickColor, fontSize: 12 }}
             tickLine={false}
-            axisLine={{ stroke: "#334155" }}
+            axisLine={{ stroke: axisColor }}
             label={{
               value: "Trade #",
               position: "insideBottomRight",
               offset: -5,
-              style: { fill: "#64748b", fontSize: 11 },
+              style: { fill: tickColor, fontSize: 11 },
             }}
           />
           <YAxis
-            tick={{ fill: "#94a3b8", fontSize: 12 }}
+            tick={{ fill: tickColor, fontSize: 12 }}
             tickLine={false}
-            axisLine={{ stroke: "#334155" }}
+            axisLine={{ stroke: axisColor }}
             label={{
               value: "Cumulative R",
               angle: -90,
               position: "insideLeft",
-              style: { fill: "#64748b", fontSize: 11 },
+              style: { fill: tickColor, fontSize: 11 },
             }}
           />
           <Tooltip content={<CustomTooltip />} />
