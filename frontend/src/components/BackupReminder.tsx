@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
 import { useTrades } from "../lib/TradeContext";
-import { emailKey, useAuth } from "../lib/authStore";
+import { useAuth } from "../lib/authStore";
 import { tradesToCsv } from "../lib/csv";
 
 const DEFAULT_KEY = "tradelog.backupReminder";
@@ -30,7 +30,7 @@ function loadState(key: string): ReminderState {
 export default function BackupReminder() {
   const { user } = useAuth();
   const storageKey = user
-    ? `tradelog.backupReminder.${emailKey(user.email)}`
+    ? `tradelog.backupReminder.${user.email}`
     : DEFAULT_KEY;
   return <KeyedReminder key={storageKey} storageKey={storageKey} />;
 }
@@ -76,11 +76,11 @@ function KeyedReminder({ storageKey }: { storageKey: string }) {
         <Download className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">
-            Time to back up your journal
+            Export a copy of your journal
           </p>
           <p className="mt-0.5 text-xs opacity-70">
             You&apos;ve logged {state.newTrades} trades since your last export.
-            Download a CSV copy to keep your data safe.
+            Download a CSV copy as an offline backup.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

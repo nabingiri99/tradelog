@@ -3,6 +3,8 @@ import type { Trade } from "../types/Trade";
 
 export interface TradeContextValue {
   trades: Trade[];
+  loading: boolean;
+  error: string | null;
   getTrade: (id: string) => Trade | undefined;
   addTrade: (trade: Omit<Trade, "id">) => Trade;
   updateTrade: (trade: Trade) => Trade;

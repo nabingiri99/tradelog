@@ -34,6 +34,11 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not defined in the environment.');
+  process.exit(1);
+}
+
 const startServer = async () => {
   try {
     await connectDB();

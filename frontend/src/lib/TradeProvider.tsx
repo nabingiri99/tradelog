@@ -1,113 +1,213 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Trade } from "../types/Trade";
-import { createTradeStorage, type TradeStorage } from "./storage";
 import { TradeContext } from "./TradeContext";
-import { emailKey, useAuth } from "./authStore";
+import { api } from "./api";
+import { useAuth } from "./authStore";
 
-const DEFAULT_KEY = "tradelog.trades";
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function TradeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const storageKey = user ? emailKey(user.email) : DEFAULT_KEY;
-  return (
-    <KeyedTradeProvider key={storageKey} storageKey={storageKey}>
-      {children}
-    </KeyedTradeProvider>
-  );
-}
-
-function KeyedTradeProvider({
-  storageKey,
-  children,
-}: {
-  storageKey: string;
-  children: ReactNode;
-}) {
-  const storage = useMemo<TradeStorage>(
-    () => createTradeStorage(storageKey),
-    [storageKey],
-  );
-
-  const [trades, setTrades] = useState<Trade[]>(() => storage.getTrades());
+  const [trades, setTrades] = useState<Trade[]>([]);
   const [lastDeleted, setLastDeleted] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const value = useMemo(() => {
-    function addTrade(trade: Omit<Trade, "id">): Trade {
-      const created = storage.addTrade(trade);
-      setTrades(storage.getTrades());
-      return created;
+  const tradesRef = useRef<Trade[]>([]);
+  useEffect(() => {
+    tradesRef.current = trades;
+  }, [trades]);
+
+  const reloadTrades = useCallback(async () => {
+    try {
+      const res = await api.trades.list();
+      tradesRef.current = res.data;
+      setTrades(res.data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load trades.");
     }
+  }, []);
 
-    function updateTrade(trade: Trade): Trade {
-      const updated = storage.updateTrade(trade);
-      setTrades(storage.getTrades());
-      return updated;
-    }
-
-    function deleteTrade(id: string) {
-      const existing = storage.getTrade(id);
-      storage.deleteTrade(id);
-      setLastDeleted(existing ? [existing] : []);
-      setTrades(storage.getTrades());
-    }
-
-    function deleteTrades(ids: string[]) {
-      if (ids.length === 0) return;
-      const removed = storage.getTrades().filter((t) => ids.includes(t.id));
-      ids.forEach((id) => storage.deleteTrade(id));
-      setLastDeleted(removed);
-      setTrades(storage.getTrades());
-    }
-
-    function duplicateTrade(id: string): Trade | undefined {
-      const original = storage.getTrade(id);
-      if (!original) return undefined;
-      const clone = { ...original } as Partial<Trade>;
-      delete clone.id;
-      const copy = storage.addTrade({
-        ...(clone as Omit<Trade, "id">),
-        date: new Date().toISOString().slice(0, 10),
+  useEffect(() => {
+    if (!user) {
+      tradesRef.current = [];
+      Promise.resolve().then(() => {
+        setTrades([]);
+        setLastDeleted([]);
+        setLoading(false);
+        setError(null);
       });
-      setTrades(storage.getTrades());
-      return copy;
+      return;
     }
 
-    function clearAllTrades() {
-      const all = storage.getTrades();
-      storage.clearAllTrades();
-      setLastDeleted(all);
-      setTrades([]);
-    }
+    let cancelled = false;
+    api.trades
+      .list()
+      .then((res) => {
+        if (cancelled) return;
+        tradesRef.current = res.data;
+        setTrades(res.data);
+        setError(null);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load trades.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    function importTrades(imported: Trade[]): number {
-      const merged = storage.mergeTrades(imported);
-      setTrades(storage.getTrades());
-      return merged;
-    }
-
-    function undoDelete(): number {
-      const restored = lastDeleted.filter((t) => !storage.getTrade(t.id));
-      restored.forEach((t) => storage.addTrade(t));
-      setLastDeleted([]);
-      setTrades(storage.getTrades());
-      return restored.length;
-    }
-
-    return {
-      trades,
-      getTrade: (id: string) => storage.getTrade(id),
-      addTrade,
-      updateTrade,
-      deleteTrade,
-      deleteTrades,
-      duplicateTrade,
-      clearAllTrades,
-      importTrades,
-      canUndo: lastDeleted.length > 0,
-      undoDelete,
+    return () => {
+      cancelled = true;
     };
-  }, [trades, storage, lastDeleted]);
+  }, [user, reloadTrades]);
+
+  const value = useMemo(
+    () => {
+      function addTrade(trade: Omit<Trade, "id">): Trade {
+        const optimistic: Trade = { ...trade, id: crypto.randomUUID() };
+        setTrades((prev) => [...prev, optimistic]);
+        setError(null);
+        api.trades
+          .create(optimistic)
+          .then((res) => {
+            setTrades((prev) =>
+              prev.map((t) => (t.id === optimistic.id ? res.data : t)),
+            );
+          })
+          .catch(() => {
+            setTrades((prev) => prev.filter((t) => t.id !== optimistic.id));
+            setError("Failed to save trade on the server.");
+          });
+        return optimistic;
+      }
+
+      function updateTrade(trade: Trade): Trade {
+        const previous = tradesRef.current.find((t) => t.id === trade.id);
+        setTrades((prev) => prev.map((t) => (t.id === trade.id ? trade : t)));
+        setError(null);
+        api.trades
+          .update(trade)
+          .then((res) => {
+            setTrades((prev) =>
+              prev.map((t) => (t.id === res.data.id ? res.data : t)),
+            );
+          })
+          .catch(() => {
+            if (previous) {
+              setTrades((prev) =>
+                prev.map((t) => (t.id === previous.id ? previous : t)),
+              );
+            }
+            setError("Failed to update trade on the server.");
+          });
+        return trade;
+      }
+
+      function deleteTrade(id: string) {
+        const existing = tradesRef.current.find((t) => t.id === id);
+        setLastDeleted(existing ? [existing] : []);
+        setTrades((prev) => prev.filter((t) => t.id !== id));
+        setError(null);
+        api.trades.remove(id).catch(() => {
+          if (existing) {
+            setTrades((prev) =>
+              prev.some((t) => t.id === id) ? prev : [...prev, existing],
+            );
+          }
+          setError("Failed to delete trade on the server.");
+        });
+      }
+
+      function deleteTrades(ids: string[]) {
+        if (ids.length === 0) return;
+        const removed = tradesRef.current.filter((t) => ids.includes(t.id));
+        setLastDeleted(removed);
+        setTrades((prev) => prev.filter((t) => !ids.includes(t.id)));
+        setError(null);
+        Promise.allSettled(ids.map((id) => api.trades.remove(id))).then(
+          (results) => {
+            if (results.some((r) => r.status === "rejected")) {
+              reloadTrades();
+              setError("Some trades could not be deleted on the server.");
+            }
+          },
+        );
+      }
+
+      function duplicateTrade(id: string): Trade | undefined {
+        const original = tradesRef.current.find((t) => t.id === id);
+        if (!original) return undefined;
+        const rest = Object.fromEntries(
+          Object.entries(original).filter(([key]) => key !== "id"),
+        ) as Omit<Trade, "id">;
+        return addTrade({ ...rest, date: today() });
+      }
+
+      function clearAllTrades() {
+        const all = tradesRef.current;
+        setLastDeleted(all);
+        setTrades([]);
+        setError(null);
+        api.trades.clearAll().catch(() => {
+          reloadTrades();
+          setError("Failed to clear trades on the server.");
+        });
+      }
+
+      function importTrades(imported: Trade[]): number {
+        const existing = tradesRef.current;
+        const seen = new Set(existing.map((t) => t.id));
+        const fresh = imported.filter((t) => !seen.has(t.id));
+        if (fresh.length === 0) return 0;
+        setTrades((prev) => [...prev, ...fresh]);
+        setError(null);
+        api.trades.bulkCreate(fresh).catch(() => {
+          reloadTrades();
+          setError("Failed to import trades on the server.");
+        });
+        return fresh.length;
+      }
+
+      function undoDelete(): number {
+        const restored = lastDeleted.filter(
+          (t) => !tradesRef.current.some((x) => x.id === t.id),
+        );
+        if (restored.length > 0) {
+          setTrades((prev) => [...prev, ...restored]);
+          setError(null);
+          api.trades.bulkCreate(restored).catch(() => {
+            reloadTrades();
+            setError("Failed to restore trades on the server.");
+          });
+        }
+        setLastDeleted([]);
+        return restored.length;
+      }
+
+      return {
+        trades,
+        loading,
+        error,
+        getTrade: (id: string) => tradesRef.current.find((t) => t.id === id),
+        addTrade,
+        updateTrade,
+        deleteTrade,
+        deleteTrades,
+        duplicateTrade,
+        clearAllTrades,
+        importTrades,
+        canUndo: lastDeleted.length > 0,
+        undoDelete,
+      };
+    },
+    [trades, loading, error, lastDeleted, reloadTrades],
+  );
 
   return <TradeContext.Provider value={value}>{children}</TradeContext.Provider>;
 }

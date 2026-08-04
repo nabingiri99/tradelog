@@ -1,42 +1,28 @@
-const mongoose = require('mongoose');
 const Trade = require('../models/Trade');
 const { asyncHandler } = require('../utils/asyncHandler');
 
-const sortableFields = [
-  'pair',
-  'direction',
-  'entryPrice',
-  'exitPrice',
-  'stopLoss',
-  'takeProfit',
-  'lotSize',
-  'entryDate',
-  'exitDate',
-  'pnl',
-  'riskReward',
-  'strategy',
-  'createdAt',
-  'updatedAt',
-];
-
 const tradeFields = [
+  'date',
+  'entryTime',
   'pair',
-  'direction',
-  'entryPrice',
-  'exitPrice',
-  'stopLoss',
-  'takeProfit',
-  'lotSize',
-  'entryDate',
-  'exitDate',
-  'pnl',
-  'riskReward',
-  'strategy',
   'session',
-  'emotion',
+  'direction',
+  'zoneType',
+  'entry',
+  'stopLoss',
+  'target',
+  'result',
+  'rr',
   'notes',
   'tags',
+  'mindset',
+  'emotion',
+  'reason',
+  'screenshot',
+  'isValidRuleTrade',
 ];
+
+const sortableFields = ['date', 'pair', 'entry', 'result', 'rr', 'createdAt', 'updatedAt'];
 
 const pickTradeFields = (body) => {
   const picked = {};
@@ -48,53 +34,51 @@ const pickTradeFields = (body) => {
   return picked;
 };
 
+const buildDoc = (trade, userId) => {
+  const doc = { user: userId, ...pickTradeFields(trade) };
+  const id = typeof trade.id === 'string' && trade.id.trim() !== '' ? trade.id.trim() : undefined;
+  if (id) doc._id = id;
+  return doc;
+};
+
+const isValidId = (id) => typeof id === 'string' && id.trim() !== '';
+
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getAllTrades = asyncHandler(async (req, res) => {
-  const { search, direction, startDate, endDate, sort = '-createdAt', page = 1, limit = 10 } = req.query;
+  const { search, direction, result, startDate, endDate, sort = '-createdAt' } = req.query;
 
-  const query = {};
+  const query = { user: req.user._id };
 
   if (search) {
     query.pair = { $regex: escapeRegExp(String(search).trim()), $options: 'i' };
   }
 
   if (direction) {
-    if (!['long', 'short'].includes(direction)) {
+    if (!['Buy', 'Sell'].includes(direction)) {
       return res.status(400).json({
         success: false,
-        message: 'direction must be either "long" or "short"',
+        message: 'direction must be either "Buy" or "Sell"',
       });
     }
     query.direction = direction;
   }
 
+  if (result) {
+    if (!['Win', 'Loss', 'BreakEven', 'Open'].includes(result)) {
+      return res.status(400).json({
+        success: false,
+        message: 'result must be one of: Win, Loss, BreakEven, Open',
+      });
+    }
+    query.result = result;
+  }
+
   if (startDate || endDate) {
     const range = {};
-
-    if (startDate) {
-      const start = new Date(startDate);
-      if (Number.isNaN(start.getTime())) {
-        return res.status(400).json({
-          success: false,
-          message: 'startDate must be a valid date',
-        });
-      }
-      range.$gte = start;
-    }
-
-    if (endDate) {
-      const end = new Date(endDate);
-      if (Number.isNaN(end.getTime())) {
-        return res.status(400).json({
-          success: false,
-          message: 'endDate must be a valid date',
-        });
-      }
-      range.$lte = end;
-    }
-
-    query.entryDate = range;
+    if (startDate) range.$gte = String(startDate).trim();
+    if (endDate) range.$lte = String(endDate).trim();
+    query.date = range;
   }
 
   const sortOptions = {};
@@ -110,24 +94,11 @@ const getAllTrades = asyncHandler(async (req, res) => {
       }
     });
 
-  const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
-  const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
-  const skip = (parsedPage - 1) * parsedLimit;
-
-  const [trades, total] = await Promise.all([
-    Trade.find(query).sort(sortOptions).skip(skip).limit(parsedLimit),
-    Trade.countDocuments(query),
-  ]);
+  const trades = await Trade.find(query).sort(sortOptions);
 
   res.status(200).json({
     success: true,
     count: trades.length,
-    pagination: {
-      page: parsedPage,
-      limit: parsedLimit,
-      total,
-      pages: Math.ceil(total / parsedLimit),
-    },
     data: trades,
   });
 });
@@ -135,14 +106,14 @@ const getAllTrades = asyncHandler(async (req, res) => {
 const getTradeById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.isValidObjectId(id)) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       success: false,
       message: 'Invalid trade ID',
     });
   }
 
-  const trade = await Trade.findById(id);
+  const trade = await Trade.findOne({ _id: id, user: req.user._id });
 
   if (!trade) {
     return res.status(404).json({
@@ -158,7 +129,7 @@ const getTradeById = asyncHandler(async (req, res) => {
 });
 
 const createTrade = asyncHandler(async (req, res) => {
-  const trade = await Trade.create(pickTradeFields(req.body));
+  const trade = await Trade.create(buildDoc(req.body, req.user._id));
 
   res.status(201).json({
     success: true,
@@ -170,17 +141,18 @@ const createTrade = asyncHandler(async (req, res) => {
 const updateTrade = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.isValidObjectId(id)) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       success: false,
       message: 'Invalid trade ID',
     });
   }
 
-  const trade = await Trade.findByIdAndUpdate(id, pickTradeFields(req.body), {
-    new: true,
-    runValidators: true,
-  });
+  const trade = await Trade.findOneAndUpdate(
+    { _id: id, user: req.user._id },
+    pickTradeFields(req.body),
+    { new: true, runValidators: true }
+  );
 
   if (!trade) {
     return res.status(404).json({
@@ -199,14 +171,14 @@ const updateTrade = asyncHandler(async (req, res) => {
 const deleteTrade = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.isValidObjectId(id)) {
+  if (!isValidId(id)) {
     return res.status(400).json({
       success: false,
       message: 'Invalid trade ID',
     });
   }
 
-  const trade = await Trade.findByIdAndDelete(id);
+  const trade = await Trade.findOneAndDelete({ _id: id, user: req.user._id });
 
   if (!trade) {
     return res.status(404).json({
@@ -221,10 +193,53 @@ const deleteTrade = asyncHandler(async (req, res) => {
   });
 });
 
+const clearAllTrades = asyncHandler(async (req, res) => {
+  const result = await Trade.deleteMany({ user: req.user._id });
+
+  res.status(200).json({
+    success: true,
+    message: 'All trades deleted successfully',
+    deleted: result.deletedCount,
+  });
+});
+
+const bulkCreateTrades = asyncHandler(async (req, res) => {
+  const list = req.body?.trades;
+
+  if (!Array.isArray(list)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Expected a "trades" array in the request body',
+    });
+  }
+
+  const docs = list
+    .filter((trade) => trade && typeof trade === 'object')
+    .map((trade) => buildDoc(trade, req.user._id));
+
+  if (docs.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'No valid trades to import',
+    });
+  }
+
+  const created = await Trade.insertMany(docs, { ordered: false });
+
+  res.status(201).json({
+    success: true,
+    message: 'Trades imported successfully',
+    count: created.length,
+    data: created,
+  });
+});
+
 module.exports = {
   getAllTrades,
   getTradeById,
   createTrade,
   updateTrade,
   deleteTrade,
+  clearAllTrades,
+  bulkCreateTrades,
 };

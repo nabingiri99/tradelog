@@ -1,5 +1,11 @@
+const SESSIONS = ['London', 'NewYork', 'Overlap', 'Other'];
+const DIRECTIONS = ['Buy', 'Sell'];
+const ZONE_TYPES = ['Supply', 'Demand'];
+const RESULTS = ['Win', 'Loss', 'BreakEven', 'Open'];
+
 const validateTrade = (req, res, next) => {
-  const { pair, direction, entryPrice, exitPrice } = req.body || {};
+  const body = req.body || {};
+  const { pair, direction, entry, stopLoss, target, session, zoneType, result } = body;
   const errors = [];
   const isCreate = req.method === 'POST';
 
@@ -11,18 +17,38 @@ const validateTrade = (req, res, next) => {
 
   if (isCreate && !direction) {
     errors.push('direction is required');
-  } else if (direction !== undefined && !['long', 'short'].includes(direction)) {
-    errors.push('direction must be either "long" or "short"');
+  } else if (direction !== undefined && !DIRECTIONS.includes(direction)) {
+    errors.push('direction must be either "Buy" or "Sell"');
   }
 
-  if (isCreate && (entryPrice === undefined || entryPrice === null)) {
-    errors.push('entryPrice is required');
-  } else if (entryPrice !== undefined && entryPrice !== null && (typeof entryPrice !== 'number' || !(entryPrice > 0))) {
-    errors.push('entryPrice must be a positive number');
+  if (isCreate && (entry === undefined || entry === null)) {
+    errors.push('entry is required');
+  } else if (entry !== undefined && entry !== null && (typeof entry !== 'number' || !(entry > 0))) {
+    errors.push('entry must be a positive number');
   }
 
-  if (exitPrice !== undefined && exitPrice !== null && (typeof exitPrice !== 'number' || exitPrice < 0)) {
-    errors.push('exitPrice must be a number and cannot be negative');
+  if (isCreate && (stopLoss === undefined || stopLoss === null)) {
+    errors.push('stopLoss is required');
+  } else if (stopLoss !== undefined && stopLoss !== null && (typeof stopLoss !== 'number' || !(stopLoss > 0))) {
+    errors.push('stopLoss must be a positive number');
+  }
+
+  if (isCreate && (target === undefined || target === null)) {
+    errors.push('target is required');
+  } else if (target !== undefined && target !== null && (typeof target !== 'number' || !(target > 0))) {
+    errors.push('target must be a positive number');
+  }
+
+  if (session !== undefined && !SESSIONS.includes(session)) {
+    errors.push('session must be one of: London, NewYork, Overlap, Other');
+  }
+
+  if (zoneType !== undefined && !ZONE_TYPES.includes(zoneType)) {
+    errors.push('zoneType must be either "Supply" or "Demand"');
+  }
+
+  if (result !== undefined && !RESULTS.includes(result)) {
+    errors.push('result must be one of: Win, Loss, BreakEven, Open');
   }
 
   if (errors.length > 0) {

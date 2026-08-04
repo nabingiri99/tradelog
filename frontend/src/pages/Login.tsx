@@ -38,8 +38,8 @@ const FEATURES = [
   },
   {
     icon: ShieldCheck,
-    title: "Private by design",
-    text: "Everything is stored locally in your browser. No servers, no tracking.",
+    title: "Server-backed & secure",
+    text: "Your journal lives in your own MongoDB database, protected by JWT authentication.",
   },
 ];
 
@@ -159,10 +159,11 @@ export default function Login() {
 
           <div className="mt-8 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:border-emerald-800/40 dark:text-emerald-300">
             <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <p>
-              <span className="font-medium">Local-first & private.</span> Your
-              journal data never leaves this browser.
-            </p>
+              <p>
+                <span className="font-medium">Server-backed & secure.</span>{" "}
+                Your journal data is stored in your MongoDB database behind
+                JWT authentication.
+              </p>
           </div>
         </div>
 
@@ -347,7 +348,7 @@ export default function Login() {
 
           <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-600">
             <Check className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
-            Demo authentication — data is stored locally in this browser.
+            Your journal data is stored in your MongoDB database.
           </div>
         </div>
       </div>

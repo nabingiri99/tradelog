@@ -1,75 +1,76 @@
-# React + TypeScript + Vite
+# TradeLog
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A trading journal web app. React + TypeScript + Vite frontend with an Express + MongoDB (Mongoose) backend and JWT authentication.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend**: React 19, Vite 8, TypeScript, Tailwind CSS, Recharts, React Router
+- **Backend**: Node.js, Express 5, Mongoose 9, MongoDB, JWT (jsonwebtoken), bcryptjs
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- User registration / login with JWT auth (bcrypt password hashing on the server)
+- Trade journal: add, edit, delete, duplicate, import (CSV/JSON), export (CSV)
+- Per-user data: each account only sees its own trades
+- Dashboard, analytics, rules checklist, backtest progress and chart backtest
+- Dark / light theme
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Layout
 
 ```
+├── frontend/       # Frontend (React + Vite)
+├── backend/        # Backend API (Express + MongoDB)
+└── vite.config.ts  # (in frontend/) dev server + /api proxy to backend
+```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 1. Backend
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd backend
+npm install
+cp .env.example .env   # then set MONGO_URI and JWT_SECRET
+npm run dev            # http://localhost:5000
+```
+
+### 2. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+The Vite dev server proxies `/api/*` to `http://localhost:5000`, so the frontend can call the API without CORS issues.
+
+## Environment Variables
+
+See `backend/.env.example`:
+
+| Variable         | Description                     |
+| ---------------- | ------------------------------- |
+| `PORT`           | API port (default `5000`)       |
+| `MONGO_URI`      | MongoDB connection string       |
+| `CORS_ORIGIN`    | Allowed frontend origin(s)      |
+| `JWT_SECRET`     | Secret for signing JWTs (required) |
+| `JWT_EXPIRES_IN` | Token lifetime (default `7d`)   |
+
+The frontend reads an optional `VITE_API_URL`. When unset it uses `/api` (which works with the Vite proxy in development).
+
+## Using MongoDB Atlas
+
+To point the backend at a MongoDB Atlas cluster, set `MONGO_URI` in `backend/.env` to:
 
 ```
+mongodb+srv://<username>:<password>@<cluster>.mongodb.net/tradelog?retryWrites=true&w=majority&appName=Cluster0
+```
+
+Notes:
+
+- Add your machine's public IP (or `0.0.0.0/0`) to Atlas → **Network Access**.
+- This sandbox preview environment cannot reach Atlas (its outbound TLS is intercepted and the MongoDB handshake fails), so the preview here runs on a local MongoDB. The same code connects to Atlas normally from your own machine.
+
+## API
+
+Full API reference: [backend/README.md](backend/README.md)
