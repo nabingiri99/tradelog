@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TradeLog - Viva Preparation Guide</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="viva-style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TradeLog - Viva Preparation Guide</h1>
+</header>
+<h1 id="tradelog-viva-preparation-guide-local-run-instructions">TradeLog
+— Viva Preparation Guide &amp; Local Run Instructions</h1>
+<blockquote>
+<p>Complete, step-by-step walkthrough of the project: architecture,
+every component, every API endpoint, the data flow, and how to run it on
+your own computer. Written to help you answer questions in a project
+viva/defense.</p>
+</blockquote>
+<hr />
+<h2 id="one-minute-summary-say-this-first">0. One-Minute Summary (say
+this first)</h2>
+<p>“TradeLog is a <strong>trading journal web application</strong>. A
+trader can log every trade with its entry, stop-loss, target, result and
+psychology; the app then shows dashboards, analytics, win rates, equity
+curves and backtest tools.</p>
+<p>It is a <strong>client–server application</strong>: -
+<strong>Frontend</strong>: a single-page app built with <strong>React 19
++ TypeScript + Vite + Tailwind CSS + Recharts</strong>. -
+<strong>Backend</strong>: a <strong>REST API</strong> built with
+<strong>Node.js + Express 5 + Mongoose</strong>, protected with
+<strong>JWT authentication</strong>. - <strong>Database</strong>:
+<strong>MongoDB</strong>, which by default runs <strong>locally</strong>
+(MongoDB Atlas optional).</p>
+<p>The backend is the <strong>single source of truth</strong>. The
+frontend never stores trades on its own — every read/write goes through
+the API, and the API scopes all data to the logged-in user.”</p>
+<hr />
+<h2 id="how-to-run-the-project-on-your-own-computer">1. How to Run the
+Project on Your Own Computer</h2>
+<h3 id="prerequisites">1.1 Prerequisites</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Software</th>
+<th>Why</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Node.js <strong>20+</strong></td>
+<td>Runs backend + frontend tooling</td>
+<td><code>node -v</code></td>
+</tr>
+<tr class="even">
+<td>npm <strong>10+</strong></td>
+<td>Package manager</td>
+<td><code>npm -v</code></td>
+</tr>
+<tr class="odd">
+<td>Git</td>
+<td>Clone the repo</td>
+<td><code>git --version</code></td>
+</tr>
+<tr class="even">
+<td>MongoDB <strong>7/8</strong></td>
+<td>Local database</td>
+<td><code>mongod --version</code> (auto-installed by the script if
+missing)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="steps-linux-macos">1.2 Steps (Linux / macOS)</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone the repository</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/nabingiri99/tradelog.git</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tradelog</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. (Optional but recommended) Install + start LOCAL MongoDB</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/setup-local-db.sh</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. One-command start: local MongoDB + backend (:5000) + frontend (:5173)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/start-all.sh</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Open the app</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#    http://localhost:5173</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Stop everything (MongoDB stays running)</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/stop-all.sh</span></span></code></pre></div>
+<p><code>start-all.sh</code> is <strong>idempotent</strong> — run it any
+time; it reuses already-running services and auto-generates a random
+<code>JWT_SECRET</code> into <code>backend/.env</code> on first run.</p>
+<h3 id="steps-windows">1.3 Steps (Windows)</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone and enter the repo</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>git clone https<span class="op">://</span>github<span class="op">.</span><span class="fu">com</span><span class="op">/</span>nabingiri99<span class="op">/</span>tradelog<span class="op">.</span><span class="fu">git</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cd</span> tradelog</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Install + start local MongoDB (PowerShell)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>powershell <span class="op">-</span>ExecutionPolicy Bypass <span class="op">-</span>File scripts\setup<span class="op">-</span>local<span class="op">-</span>db<span class="op">.</span><span class="fu">ps1</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Open TWO terminals:</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#    Terminal A -&gt; backend</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cd</span> backend</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>npm install</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">copy</span> <span class="op">.</span><span class="fu">env</span><span class="op">.</span><span class="fu">example</span> <span class="op">.</span><span class="fu">env</span>        <span class="co"># then edit .env and set JWT_SECRET to any long string</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>npm run dev                   <span class="co"># http://localhost:5000</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#    Terminal B -&gt; frontend</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cd</span> frontend</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>npm install</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>npm run dev                   <span class="co"># http://localhost:5173</span></span></code></pre></div>
+<h3 id="what-each-running-piece-is">1.4 What each running piece is</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Piece</th>
+<th>Command</th>
+<th>URL</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Local MongoDB</td>
+<td>(service/script)</td>
+<td><code>mongodb://127.0.0.1:27017/tradelog</code></td>
+<td>stores users + trades</td>
+</tr>
+<tr class="even">
+<td>Backend API</td>
+<td><code>npm run dev</code> (backend)</td>
+<td><code>http://localhost:5000/api</code></td>
+<td>REST endpoints + JWT</td>
+</tr>
+<tr class="odd">
+<td>Frontend</td>
+<td><code>npm run dev</code> (frontend)</td>
+<td><code>http://localhost:5173</code></td>
+<td>the user interface</td>
+</tr>
+</tbody>
+</table>
+<p>The frontend’s Vite dev server <strong>proxies</strong>
+<code>/api/*</code> to <code>http://localhost:5000</code>, so in
+development all API calls appear same-origin and no CORS configuration
+is needed.</p>
+<h3 id="using-mongodb-atlas-instead-optional-cloud">1.5 Using MongoDB
+Atlas instead (optional, cloud)</h3>
+<p>Edit <code>backend/.env</code>, set:</p>
+<pre><code>MONGO_URI=mongodb+srv://&lt;username&gt;:&lt;password&gt;@&lt;cluster&gt;.mongodb.net/tradelog?retryWrites=true&amp;w=majority&amp;appName=Cluster0</code></pre>
+<p>Then whitelist your public IP in Atlas → <strong>Network
+Access</strong>. That’s it — no code changes.</p>
+<hr />
+<h2 id="system-architecture">2. System Architecture</h2>
+<pre><code>        BROWSER (React SPA, port 5173)
+        ┌─────────────────────────────────────────────┐
+        │  Pages → Components → Contexts (state)      │
+        │  │                                           │
+        │  └─ lib/api.ts  (fetch + Bearer token)      │
+        └───────────────┬─────────────────────────────┘
+                        │  /api/*   (Vite dev proxy → localhost:5000)
+                        ▼
+        EXPRESS BACKEND (port 5000)
+        ┌─────────────────────────────────────────────┐
+        │  helmet → cors → express.json → routes       │
+        │   routes/auth.routes.js   (register/login/…) │
+        │   routes/tradeRoutes.js   (CRUD, protect)    │
+        │   middleware/auth.js      (verify JWT)       │
+        │   middleware/validateTrade.js                │
+        │   controllers/  (business logic)             │
+        └───────────────┬─────────────────────────────┘
+                        │  Mongoose ODM
+                        ▼
+        MONGODB (database &quot;tradelog&quot;)
+        collections: users , trades</code></pre>
+<p><strong>Key architectural decisions</strong> 1. <strong>Backend is
+source of truth</strong> — trades and users live in MongoDB; the
+frontend just renders. 2. <strong>JWT auth</strong> — stateless: the
+server verifies the token on every protected call; no session table. 3.
+<strong>Per-user data isolation</strong> — every trade query filters by
+<code>user: req.user._id</code>. 4. <strong>String trade
+<code>_id</code>s</strong> (client-generated UUIDs) — makes CSV/JSON
+export→import round-trips stable. 5. <strong>Optimistic UI</strong> —
+the UI updates instantly, then syncs with the server and rolls back on
+failure.</p>
+<hr />
+<h2 id="project-structure-explained-folder-by-folder">3. Project
+Structure (explained folder by folder)</h2>
+<pre><code>tradelog/
+├── README.md                  project overview + run instructions
+├── docs/                      documentation (overview PDF, this guide)
+├── scripts/                   dev helpers
+│   ├── setup-local-db.sh      install + start local MongoDB (Linux/macOS)
+│   ├── setup-local-db.ps1     install + start local MongoDB (Windows)
+│   ├── start-all.sh           one-command start (mongo + backend + frontend)
+│   └── stop-all.sh            stop backend + frontend
+├── backend/                   Express REST API
+│   ├── server.js              entry point (middleware, routes, DB connect)
+│   ├── .env.example           template for environment variables
+│   ├── config/
+│   │   ├── db.js              mongoose.connect(MONGO_URI)
+│   │   └── index.js
+│   ├── models/
+│   │   ├── User.js            user schema + bcrypt + toJSON (hides passwordHash)
+│   │   └── Trade.js           trade schema (string _id UUID, user ref)
+│   ├── routes/
+│   │   ├── index.js           mounts /health, /auth, /trades
+│   │   ├── health.routes.js   GET /api/health
+│   │   ├── auth.routes.js     register, login, me, profile, password
+│   │   └── tradeRoutes.js     CRUD + bulk + clear-all (all protected)
+│   ├── controllers/
+│   │   ├── authController.js  registration, login, profile, password logic
+│   │   └── tradeController.js list/create/update/delete/bulk logic
+│   ├── middleware/
+│   │   ├── auth.js            JWT verification (&quot;protect&quot;)
+│   │   ├── validateTrade.js   payload validation (enums, positive numbers)
+│   │   └── errorHandler.js    notFound + centralized error handler
+│   └── utils/
+│       └── asyncHandler.js    wraps async controllers, forwards errors to next()
+└── frontend/                  React SPA
+    ├── index.html             HTML entry point
+    ├── vite.config.ts         dev server + /api proxy + allowedHosts
+    ├── tailwind.config.js     Tailwind setup
+    ├── src/
+    │   ├── main.tsx           React root + provider hierarchy
+    │   ├── App.tsx            router + protected routes + layout
+    │   ├── types/Trade.ts     Trade TypeScript type (mirrors backend schema)
+    │   ├── lib/
+    │   │   ├── api.ts         the only file that talks to the backend
+    │   │   ├── authStore.ts   AuthContext + token get/set (local/sessionStorage)
+    │   │   ├── AuthProvider.tsx  session restore, login/register/profile logic
+    │   │   ├── TradeContext.tsx  TradeContext + useTrades() hook
+    │   │   ├── TradeProvider.tsx server-synced trade state (optimistic CRUD)
+    │   │   ├── csv.ts         CSV/JSON export + import (TradeLog + broker formats)
+    │   │   ├── analytics.ts   statistics helpers
+    │   │   ├── themeStore.ts / ThemeProvider.tsx  dark/light theme
+    │   │   ├── settingsStore.ts / SettingsProvider.tsx  backtest goal, backup counters
+    │   │   └── rulesStore.ts  trading-rules checklist (localStorage)
+    │   ├── pages/
+    │   │   ├── Login.tsx        login / register form
+    │   │   ├── Dashboard.tsx    stats + charts + breakdowns
+    │   │   ├── TradeLog.tsx     table, filters, sort, bulk delete, export/import
+    │   │   ├── AddEditTrade.tsx trade create/edit form
+    │   │   ├── AnalyticsPage.tsx deeper analytics
+    │   │   ├── RulesChecklist.tsx pre-trade rule checklist
+    │   │   ├── BacktestProgress.tsx backtest goal tracking
+    │   │   ├── ChartBacktest.tsx candlestick backtest
+    │   │   └── Profile.tsx     account, password, backtest goal
+    │   └── components/
+    │       ├── Navbar.tsx          sidebar navigation + logout
+    │       ├── StatCard.tsx        stat tile with trend
+    │       ├── EquityCurveChart.tsx equity curve (Recharts)
+    │       ├── CandleChart.tsx     candlestick chart
+    │       ├── TradeForm.tsx       the trade entry form
+    │       ├── TradeTable.tsx      sortable trade table
+    │       ├── BackupReminder.tsx  reminds you to export trades
+    │       └── ThemeToggle.tsx     dark/light switch</code></pre>
+<hr />
+<h2 id="frontend-how-it-works">4. Frontend — How It Works</h2>
+<h3 id="provider-hierarchy-main.tsx">4.1 Provider hierarchy
+(<code>main.tsx</code>)</h3>
+<p>Outer providers wrap inner ones; an inner provider can use an outer
+one via its hook.</p>
+<pre><code>&lt;ThemeProvider&gt;       → dark/light theme (localStorage)
+  &lt;AuthProvider&gt;      → user session + JWT
+    &lt;SettingsProvider&gt;→ backtest goal + backup counters (localStorage)
+      &lt;TradeProvider&gt; → trades synced with the backend
+        &lt;App /&gt;       → &lt;BrowserRouter&gt; + routes</code></pre>
+<h3 id="routing-app.tsx">4.2 Routing (<code>App.tsx</code>)</h3>
+<ul>
+<li>Public route: <code>/login</code> → <code>Login</code> page.</li>
+<li>Everything else is wrapped in <code>&lt;ProtectedRoute&gt;</code>
+(redirects to <code>/login</code> if no user) and then in
+<code>&lt;Layout&gt;</code> (sidebar Navbar + BackupReminder + page
+content).</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Route</th>
+<th>Page</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/login</code></td>
+<td>Login</td>
+<td>sign in / create account</td>
+</tr>
+<tr class="even">
+<td><code>/</code></td>
+<td>Dashboard</td>
+<td>performance overview, stat cards, charts, breakdowns</td>
+</tr>
+<tr class="odd">
+<td><code>/log</code></td>
+<td>TradeLog</td>
+<td>table, filters, sort, bulk delete, CSV export/import</td>
+</tr>
+<tr class="even">
+<td><code>/add</code></td>
+<td>AddEditTrade</td>
+<td>create a trade</td>
+</tr>
+<tr class="odd">
+<td><code>/edit/:id</code></td>
+<td>AddEditTrade</td>
+<td>edit a trade</td>
+</tr>
+<tr class="even">
+<td><code>/analytics</code></td>
+<td>AnalyticsPage</td>
+<td>deeper performance analytics</td>
+</tr>
+<tr class="odd">
+<td><code>/checklist</code></td>
+<td>RulesChecklist</td>
+<td>trading rules checklist</td>
+</tr>
+<tr class="even">
+<td><code>/backtest</code></td>
+<td>BacktestProgress</td>
+<td>backtest goal tracking</td>
+</tr>
+<tr class="odd">
+<td><code>/backtest/chart</code></td>
+<td>ChartBacktest</td>
+<td>candlestick backtest</td>
+</tr>
+<tr class="even">
+<td><code>/profile</code></td>
+<td>Profile</td>
+<td>account, change password, backtest goal</td>
+</tr>
+</tbody>
+</table>
+<h3
+id="the-api-client-srclibapi.ts-the-only-file-that-talks-to-the-backend">4.3
+The API client (<code>src/lib/api.ts</code>) — the ONLY file that talks
+to the backend</h3>
+<ul>
+<li>Reads the JWT (<code>getAuthToken()</code>) and adds header
+<code>Authorization: Bearer &lt;token&gt;</code>.</li>
+<li>Every response is parsed as JSON; on a <strong>401</strong> the
+stored token is cleared (auto-logout).</li>
+<li>On non-2xx it throws an <code>ApiError</code> with the backend
+message so the UI can show it.</li>
+<li>Base URL: <code>import.meta.env.VITE_API_URL</code> or
+<code>"/api"</code> (goes through the Vite proxy in dev).</li>
+</ul>
+<p>Exposed methods:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">auth</span><span class="op">.</span><span class="fu">register</span>({name<span class="op">,</span>email<span class="op">,</span>password})  → POST <span class="op">/</span>api<span class="op">/</span>auth<span class="op">/</span>register</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">auth</span><span class="op">.</span><span class="fu">login</span>({email<span class="op">,</span>password})          → POST <span class="op">/</span>api<span class="op">/</span>auth<span class="op">/</span>login</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">auth</span><span class="op">.</span><span class="fu">me</span>()                             → GET  <span class="op">/</span>api<span class="op">/</span>auth<span class="op">/</span>me</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">auth</span><span class="op">.</span><span class="fu">updateProfile</span>(name)              → PUT  <span class="op">/</span>api<span class="op">/</span>auth<span class="op">/</span>profile</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">auth</span><span class="op">.</span><span class="fu">changePassword</span>(current<span class="op">,</span>next)     → PUT  <span class="op">/</span>api<span class="op">/</span>auth<span class="op">/</span>password</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">list</span>()                         → GET  <span class="op">/</span>api<span class="op">/</span>trades</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">get</span>(id)                        → GET  <span class="op">/</span>api<span class="op">/</span>trades<span class="op">/:</span>id</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">create</span>(trade)                  → POST <span class="op">/</span>api<span class="op">/</span>trades</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">update</span>(trade)                  → PUT  <span class="op">/</span>api<span class="op">/</span>trades<span class="op">/:</span>id</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">remove</span>(id)                     → DELETE <span class="op">/</span>api<span class="op">/</span>trades<span class="op">/:</span>id</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">clearAll</span>()                     → DELETE <span class="op">/</span>api<span class="op">/</span>trades</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>api<span class="op">.</span><span class="at">trades</span><span class="op">.</span><span class="fu">bulkCreate</span>(trades[])           → POST <span class="op">/</span>api<span class="op">/</span>trades<span class="op">/</span>bulk</span></code></pre></div>
+<h3 id="authentication-state-authstore.ts-authprovider.tsx">4.4
+Authentication state (<code>authStore.ts</code> +
+<code>AuthProvider.tsx</code>)</h3>
+<ul>
+<li>Token key: <code>"tradelog.token"</code>.</li>
+<li><code>setAuthToken(token, remember)</code>: if
+<strong>remember</strong> → <code>localStorage</code> (survives
+restart); else → <code>sessionStorage</code> (cleared when tab
+closes).</li>
+<li>On app start, if a token exists, <code>AuthProvider</code> calls
+<code>GET /api/auth/me</code> to restore the session. Invalid/expired
+token → token cleared → user null → redirected to
+<code>/login</code>.</li>
+<li><code>AuthProvider</code> exposes
+<code>{ user, login, register, updateProfile, changePassword, logout }</code>
+via the <code>useAuth()</code> hook.</li>
+</ul>
+<h3 id="trade-state-tradeprovider.tsx-tradecontext.tsx">4.5 Trade state
+(<code>TradeProvider.tsx</code> + <code>TradeContext.tsx</code>)</h3>
+<ul>
+<li>When a user logs in, <code>TradeProvider</code> fetches
+<code>GET /api/trades</code> and stores the list.</li>
+<li>All CRUD functions are <strong>optimistic</strong>:
+<ul>
+<li><code>addTrade</code> → generates <code>crypto.randomUUID()</code>,
+adds to state immediately, then <code>POST /api/trades</code>; on
+success replaces with the server-confirmed record, on failure removes it
++ shows error.</li>
+<li><code>updateTrade</code> → updates in place,
+<code>PUT /api/trades/:id</code>; on failure reverts to previous.</li>
+<li><code>deleteTrade</code> / <code>deleteTrades</code> → removes
+optimistically, <code>DELETE</code>; keeps a copy in
+<code>lastDeleted</code> so the user can <strong>undo</strong>
+(re-import via <code>POST /api/trades/bulk</code>).</li>
+<li><code>clearAllTrades</code> → <code>DELETE /api/trades</code>.</li>
+<li><code>importTrades</code> → de-duplicates against existing ids, then
+<code>POST /api/trades/bulk</code>.</li>
+</ul></li>
+<li>Exposes
+<code>{ trades, loading, error, getTrade, addTrade, updateTrade, deleteTrade,   deleteTrades, duplicateTrade, clearAllTrades, importTrades, canUndo, undoDelete }</code>
+via the <code>useTrades()</code> hook.</li>
+</ul>
+<h3 id="import-export-csv.ts">4.6 Import / Export
+(<code>csv.ts</code>)</h3>
+<ul>
+<li><strong>Export</strong>: <code>tradesToCsv()</code> writes all
+fields (tags joined with <code>|</code>, quotes escaped) to a CSV.</li>
+<li><strong>Import</strong> auto-detects the format from headers:
+<ul>
+<li>TradeLog export (has <code>id</code>, <code>result</code>,
+<code>rr</code>) → <code>parseCsv</code>.</li>
+<li>Broker export (date/symbol/entry…) → <code>parseBrokerCsv</code>
+maps columns and computes <code>rr</code>/result.</li>
+<li>JSON → array of trades or <code>{ trades: [...] }</code>.</li>
+</ul></li>
+</ul>
+<h3 id="vite-proxy-vite.config.ts">4.7 Vite proxy
+(<code>vite.config.ts</code>)</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>server<span class="op">:</span> {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  proxy<span class="op">:</span> { <span class="st">&quot;/api&quot;</span><span class="op">:</span> { target<span class="op">:</span> <span class="st">&quot;http://localhost:5000&quot;</span><span class="op">,</span> changeOrigin<span class="op">:</span> <span class="kw">true</span> } }</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Any request to <code>/api/*</code> on the frontend is forwarded to
+the backend, so the browser only ever talks to
+<code>localhost:5173</code>.</p>
+<hr />
+<h2 id="backend-how-it-works">5. Backend — How It Works</h2>
+<h3 id="request-lifecycle-order-of-middleware-in-server.js">5.1 Request
+lifecycle (order of middleware in <code>server.js</code>)</h3>
+<pre><code>request
+  → helmet()                    security headers
+  → cors({ origin })            CORS policy
+  → express.json()              parse JSON body
+  → /api router
+      → specific route handler
+          → protect (JWT)       [on protected routes]
+          → validateTrade       [on trade write routes]
+          → controller          business logic
+          → Mongoose → MongoDB
+  → response JSON
+  → (if nothing matched) notFound 404
+  → (if error thrown) errorHandler</code></pre>
+<h3 id="environment-variables-backend.env">5.2 Environment variables
+(<code>backend/.env</code>)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>NODE_ENV</code></td>
+<td><code>development</code> / <code>production</code></td>
+</tr>
+<tr class="even">
+<td><code>PORT</code></td>
+<td>API port (default 5000)</td>
+</tr>
+<tr class="odd">
+<td><code>MONGO_URI</code></td>
+<td><code>mongodb://127.0.0.1:27017/tradelog</code> (local) or Atlas
+string</td>
+</tr>
+<tr class="even">
+<td><code>CORS_ORIGIN</code></td>
+<td>comma-separated allowed frontend origins</td>
+</tr>
+<tr class="odd">
+<td><code>JWT_SECRET</code></td>
+<td>secret to sign/verify JWTs (<strong>required</strong> — server
+refuses to start without it)</td>
+</tr>
+<tr class="even">
+<td><code>JWT_EXPIRES_IN</code></td>
+<td>token lifetime (default <code>7d</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="full-api-reference-every-endpoint">5.3 Full API reference (every
+endpoint)</h3>
+<p>All trade endpoints require
+<code>Authorization: Bearer &lt;JWT&gt;</code>.</p>
+<h4 id="auth">Auth</h4>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Path</th>
+<th>Body</th>
+<th>Success</th>
+<th>Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>POST</code></td>
+<td><code>/api/auth/register</code></td>
+<td><code>{name, email, password}</code></td>
+<td><code>201</code> <code>{success, token, data:user}</code></td>
+<td><code>400</code> validation, <code>409</code> duplicate email</td>
+</tr>
+<tr class="even">
+<td><code>POST</code></td>
+<td><code>/api/auth/login</code></td>
+<td><code>{email, password}</code></td>
+<td><code>200</code> <code>{success, token, data:user}</code></td>
+<td><code>400</code>, <code>401</code> wrong credentials</td>
+</tr>
+<tr class="odd">
+<td><code>GET</code></td>
+<td><code>/api/auth/me</code></td>
+<td>— (JWT)</td>
+<td><code>200</code> <code>{success, data:user}</code></td>
+<td><code>401</code></td>
+</tr>
+<tr class="even">
+<td><code>PUT</code></td>
+<td><code>/api/auth/profile</code></td>
+<td><code>{name}</code></td>
+<td><code>200</code> <code>{success, message, data:user}</code></td>
+<td><code>400</code>, <code>401</code></td>
+</tr>
+<tr class="odd">
+<td><code>PUT</code></td>
+<td><code>/api/auth/password</code></td>
+<td><code>{currentPassword, newPassword}</code></td>
+<td><code>200</code> <code>{success, message}</code></td>
+<td><code>400</code>, <code>401</code> wrong current</td>
+</tr>
+</tbody>
+</table>
+<p>Example register response:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Account created successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;665f...&quot;</span><span class="fu">,</span> <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Nabin&quot;</span><span class="fu">,</span> <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;me@mail.com&quot;</span><span class="fu">,</span> <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;...&quot;</span> <span class="fu">}</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 id="trades">Trades</h4>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Path</th>
+<th>Body / Query</th>
+<th>Success</th>
+<th>Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>GET</code></td>
+<td><code>/api/trades</code></td>
+<td>query:
+<code>search, direction, result, startDate, endDate, sort</code></td>
+<td><code>200</code> <code>{success, count, data:[...]}</code></td>
+<td><code>400</code> bad filter</td>
+</tr>
+<tr class="even">
+<td><code>GET</code></td>
+<td><code>/api/trades/:id</code></td>
+<td>—</td>
+<td><code>200</code> <code>{success, data}</code></td>
+<td><code>400</code>, <code>404</code></td>
+</tr>
+<tr class="odd">
+<td><code>POST</code></td>
+<td><code>/api/trades</code></td>
+<td>trade object</td>
+<td><code>201</code> <code>{success, message, data}</code></td>
+<td><code>400</code> validation</td>
+</tr>
+<tr class="even">
+<td><code>PUT</code></td>
+<td><code>/api/trades/:id</code></td>
+<td>trade object</td>
+<td><code>200</code> <code>{success, message, data}</code></td>
+<td><code>400</code>, <code>404</code></td>
+</tr>
+<tr class="odd">
+<td><code>DELETE</code></td>
+<td><code>/api/trades/:id</code></td>
+<td>—</td>
+<td><code>200</code> <code>{success, message}</code></td>
+<td><code>400</code>, <code>404</code></td>
+</tr>
+<tr class="even">
+<td><code>DELETE</code></td>
+<td><code>/api/trades</code></td>
+<td>— (clears all for user)</td>
+<td><code>200</code> <code>{success, message, deleted}</code></td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><code>POST</code></td>
+<td><code>/api/trades/bulk</code></td>
+<td><code>{ trades: [...] }</code></td>
+<td><code>201</code> <code>{success, message, count, data}</code></td>
+<td><code>400</code></td>
+</tr>
+</tbody>
+</table>
+<p>Example trade object (create):</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;date&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-08-04&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entryTime&quot;</span><span class="fu">:</span> <span class="st">&quot;09:30&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pair&quot;</span><span class="fu">:</span> <span class="st">&quot;EURUSD&quot;</span><span class="fu">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;session&quot;</span><span class="fu">:</span> <span class="st">&quot;London&quot;</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;direction&quot;</span><span class="fu">:</span> <span class="st">&quot;Buy&quot;</span><span class="fu">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;zoneType&quot;</span><span class="fu">:</span> <span class="st">&quot;Demand&quot;</span><span class="fu">,</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entry&quot;</span><span class="fu">:</span> <span class="fl">1.10</span><span class="fu">,</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;stopLoss&quot;</span><span class="fu">:</span> <span class="fl">1.09</span><span class="fu">,</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;target&quot;</span><span class="fu">:</span> <span class="fl">1.12</span><span class="fu">,</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;result&quot;</span><span class="fu">:</span> <span class="st">&quot;Win&quot;</span><span class="fu">,</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rr&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="st">&quot;nice setup&quot;</span><span class="fu">,</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tags&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;sniper&quot;</span><span class="ot">,</span> <span class="st">&quot;trend&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isValidRuleTrade&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="jwt-middleware-middlewareauth.js">5.4 JWT middleware
+(<code>middleware/auth.js</code>)</h3>
+<ol type="1">
+<li>Reads <code>Authorization</code> header; expects
+<code>Bearer &lt;token&gt;</code>.</li>
+<li>If missing →
+<code>401 "Not authorized, no token provided"</code>.</li>
+<li>Verifies token with <code>jwt.verify(token, JWT_SECRET)</code> →
+gives <code>{ id }</code> (the user’s ObjectId).</li>
+<li>Loads the user from the DB (<code>User.findById(id)</code>); if the
+user no longer exists → 401.</li>
+<li>Attaches the full user document to <code>req.user</code> and calls
+<code>next()</code>.</li>
+</ol>
+<p>All trade routes and <code>/auth/me</code>,
+<code>/auth/profile</code>, <code>/auth/password</code> use
+<code>protect</code>.</p>
+<h3 id="validation-middleware-middlewarevalidatetrade.js">5.5 Validation
+middleware (<code>middleware/validateTrade.js</code>)</h3>
+<p>For <strong>create</strong> (<code>POST</code>): requires
+<code>pair</code>, <code>direction</code>, <code>entry</code>,
+<code>stopLoss</code>, <code>target</code>. For <strong>update</strong>
+(<code>PUT</code>): validates only the fields that are present. Enums
+validated: <code>session</code> ∈ London/NewYork/Overlap/Other;
+<code>direction</code> ∈ Buy/Sell; <code>zoneType</code> ∈
+Supply/Demand; <code>result</code> ∈ Win/Loss/BreakEven/Open. Numbers
+(<code>entry</code>, <code>stopLoss</code>, <code>target</code>) must be
+positive numbers. On any error → <code>400</code> with an
+<code>errors</code> array.</p>
+<h3 id="error-handler-middlewareerrorhandler.js">5.6 Error handler
+(<code>middleware/errorHandler.js</code>)</h3>
+<ul>
+<li>Converts known Mongoose errors to clean HTTP responses:
+<ul>
+<li><code>ValidationError</code> → 400 with field messages</li>
+<li><code>CastError</code> → 400</li>
+<li>duplicate key (<code>code 11000</code>) → 409</li>
+</ul></li>
+<li>Any other error → 500 (stack trace only shown in development).</li>
+<li><code>notFound</code> returns <code>404</code> for unmatched
+routes.</li>
+</ul>
+<hr />
+<h2 id="database-models-and-data">6. Database — Models and Data</h2>
+<h3 id="user-collection">6.1 <code>User</code> collection</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>name</code></td>
+<td>String</td>
+<td>required</td>
+</tr>
+<tr class="even">
+<td><code>email</code></td>
+<td>String</td>
+<td>required, <strong>unique</strong>, lowercase</td>
+</tr>
+<tr class="odd">
+<td><code>passwordHash</code></td>
+<td>String</td>
+<td>bcrypt hash (10 rounds). Never returned by the API
+(<code>toJSON</code> deletes it).</td>
+</tr>
+<tr class="even">
+<td><code>createdAt</code> / <code>updatedAt</code></td>
+<td>Date</td>
+<td>automatic (<code>timestamps: true</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>matchPassword(password)</code> uses
+<code>bcrypt.compare()</code> to check logins and password changes.</p>
+<h3 id="trade-collection">6.2 <code>Trade</code> collection</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>_id</code></td>
+<td>String</td>
+<td>default <code>crypto.randomUUID()</code> — keeps CSV round-trip
+ids</td>
+</tr>
+<tr class="even">
+<td><code>user</code></td>
+<td>ObjectId ref → User</td>
+<td><strong>required, indexed</strong> — ownership + isolation</td>
+</tr>
+<tr class="odd">
+<td><code>date</code></td>
+<td>String <code>YYYY-MM-DD</code></td>
+<td>required</td>
+</tr>
+<tr class="even">
+<td><code>entryTime</code></td>
+<td>String</td>
+<td>optional</td>
+</tr>
+<tr class="odd">
+<td><code>pair</code></td>
+<td>String</td>
+<td>required, uppercased</td>
+</tr>
+<tr class="even">
+<td><code>session</code></td>
+<td>enum</td>
+<td>London / NewYork / Overlap / Other</td>
+</tr>
+<tr class="odd">
+<td><code>direction</code></td>
+<td>enum</td>
+<td>Buy / Sell (required)</td>
+</tr>
+<tr class="even">
+<td><code>zoneType</code></td>
+<td>enum</td>
+<td>Supply / Demand</td>
+</tr>
+<tr class="odd">
+<td><code>entry</code>, <code>stopLoss</code>, <code>target</code></td>
+<td>Number &gt; 0</td>
+<td>required, validated</td>
+</tr>
+<tr class="even">
+<td><code>result</code></td>
+<td>enum</td>
+<td>Win / Loss / BreakEven / Open</td>
+</tr>
+<tr class="odd">
+<td><code>rr</code></td>
+<td>Number ≥ 0</td>
+<td>risk/reward</td>
+</tr>
+<tr class="even">
+<td><code>notes</code>, <code>emotion</code>, <code>reason</code>,
+<code>screenshot</code></td>
+<td>String</td>
+<td>optional</td>
+</tr>
+<tr class="odd">
+<td><code>tags</code></td>
+<td>[String]</td>
+<td>default <code>[]</code></td>
+</tr>
+<tr class="even">
+<td><code>mindset</code></td>
+<td><code>{ before, after }</code></td>
+<td>optional</td>
+</tr>
+<tr class="odd">
+<td><code>isValidRuleTrade</code></td>
+<td>Boolean</td>
+<td>default false</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>toJSON</code> transform converts <code>_id</code> →
+<code>id</code> and hides <code>__v</code>, matching the frontend
+<code>Trade</code> type.</p>
+<h3 id="why-local-vs-cloud-matters-in-the-viva">6.3 Why local vs cloud
+matters in the viva</h3>
+<ul>
+<li><strong>Local</strong>:
+<code>MONGO_URI=mongodb://127.0.0.1:27017/tradelog</code> — data on your
+machine, free, private.</li>
+<li><strong>Atlas</strong>: cloud MongoDB — data accessible from any
+device, needs internet + IP whitelist.</li>
+<li>The app is <strong>database-agnostic</strong>: only the
+<code>MONGO_URI</code> string changes.</li>
+</ul>
+<hr />
+<h2 id="end-to-end-workflows-step-by-step-narrate-these-in-the-viva">7.
+End-to-End Workflows (step by step — narrate these in the viva)</h2>
+<h3 id="registration">7.1 Registration</h3>
+<ol type="1">
+<li>User clicks “Create Account”, fills name/email/password.</li>
+<li><code>Login.tsx</code> calls
+<code>register(name, email, password)</code> from
+<code>useAuth()</code>.</li>
+<li><code>AuthProvider</code> calls <code>api.auth.register()</code> →
+<code>POST /api/auth/register</code>.</li>
+<li>Backend validates (email format, password ≥ 6 chars); duplicate
+email → <strong>409</strong>.</li>
+<li>Password is hashed with bcrypt (10 rounds); user document
+saved.</li>
+<li>A JWT is signed:
+<code>jwt.sign({ id }, JWT_SECRET, { expiresIn: '7d' })</code>.</li>
+<li>Response <code>201 { token, data }</code>; frontend stores the token
+and sets <code>user</code>.</li>
+<li>User is redirected to the Dashboard; <code>TradeProvider</code>
+fetches (empty) trades.</li>
+</ol>
+<h3 id="login-session-restore">7.2 Login + session restore</h3>
+<ol type="1">
+<li><code>POST /api/auth/login</code> with email/password.</li>
+<li>Backend finds user by email, <code>bcrypt.compare()</code> the
+password.</li>
+<li>Wrong credentials → <strong>401</strong>; correct → returns
+JWT.</li>
+<li>Frontend stores the token (localStorage if “Remember me”, else
+sessionStorage).</li>
+<li>On refresh, <code>AuthProvider</code> sees the token and calls
+<code>GET /api/auth/me</code> to restore the session.</li>
+<li>Expired/invalid token → token cleared → redirect to
+<code>/login</code>.</li>
+</ol>
+<h3 id="creating-a-trade">7.3 Creating a trade</h3>
+<ol type="1">
+<li>User opens <code>/add</code>, fills the form
+(<code>TradeForm.tsx</code>), submits.</li>
+<li><code>TradeProvider.addTrade()</code> creates the object with
+<code>crypto.randomUUID()</code>, updates the UI
+<strong>optimistically</strong>.</li>
+<li><code>POST /api/trades</code> → <code>protect</code> verifies JWT →
+<code>validateTrade</code> checks fields →
+<code>tradeController.createTrade</code> saves with
+<code>user: req.user._id</code>.</li>
+<li>Server returns the confirmed record; <code>TradeProvider</code>
+swaps the optimistic record with it.</li>
+<li>If the request fails → the optimistic record is removed and an error
+banner appears.</li>
+</ol>
+<h3 id="editing-deleting-clearing">7.4 Editing / deleting /
+clearing</h3>
+<ul>
+<li>Edit → <code>updateTrade</code> → optimistic replace →
+<code>PUT /api/trades/:id</code> → revert on failure.</li>
+<li>Delete one → <code>deleteTrade</code> → optimistic removal →
+<code>DELETE /api/trades/:id</code>; record saved for Undo.</li>
+<li>Delete many → <code>deleteTrades(ids)</code> →
+<code>Promise.allSettled</code> of deletes; reload on any failure.</li>
+<li>Clear all → <code>clearAllTrades</code> →
+<code>DELETE /api/trades</code>.</li>
+<li><strong>Undo</strong> → <code>undoDelete()</code> re-inserts the
+remembered records via <code>POST /api/trades/bulk</code>.</li>
+</ul>
+<h3 id="import-export-backup-migration">7.5 Import / export (backup
+&amp; migration)</h3>
+<ol type="1">
+<li>Export: <code>tradesToCsv()</code> produces a CSV of the current
+trades → user downloads it.</li>
+<li>Import: user drops a CSV/JSON; <code>parseImportFile</code> detects
+the format.</li>
+<li><code>importTrades</code> skips ids that already exist
+(de-dupe).</li>
+<li>New rows are added optimistically and pushed with
+<code>POST /api/trades/bulk</code>.</li>
+<li><code>BackupReminder</code> counts trades since the last export and
+reminds the user to back up.</li>
+</ol>
+<h3 id="analytics">7.6 Analytics</h3>
+<ol type="1">
+<li>Dashboard / Analytics read <code>trades</code> from
+<code>useTrades()</code>.</li>
+<li><code>useMemo</code> computations: win rate, average R, net R,
+profit factor, expectancy, max drawdown, streaks, best/worst trade,
+monthly and per-pair breakdowns.</li>
+<li>Recharts renders: equity curve (<code>EquityCurveChart</code>),
+session bar chart, tables.</li>
+<li>Everything derives from the <strong>same in-memory trade
+list</strong>, so it updates instantly when a trade changes.</li>
+</ol>
+<h3 id="data-isolation-important-viva-point">7.7 Data isolation
+(important viva point)</h3>
+<p>Two users “Alice” and “Bob” both call <code>GET /api/trades</code>.
+The backend runs <code>Trade.find({ user: req.user._id })</code> — Alice
+only gets Alice’s trades because <code>req.user</code> comes from
+<em>her</em> token. Accessing another user’s trade id returns
+<strong>404</strong> (the query includes
+<code>user: req.user._id</code>, so it simply doesn’t match).</p>
+<hr />
+<h2 id="security-always-asked-in-viva">8. Security (always asked in
+viva)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concern</th>
+<th>How it’s handled</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Password storage</td>
+<td>bcrypt hash (10 rounds); raw password never stored/returned</td>
+</tr>
+<tr class="even">
+<td>Authentication</td>
+<td>JWT signed with <code>JWT_SECRET</code>; <code>expiresIn</code>
+default 7 days</td>
+</tr>
+<tr class="odd">
+<td>Authorization</td>
+<td>Every trade query scoped by <code>user</code>; cross-user access →
+404</td>
+</tr>
+<tr class="even">
+<td>Sensitive fields</td>
+<td>User <code>toJSON</code> deletes <code>passwordHash</code> before
+any response</td>
+</tr>
+<tr class="odd">
+<td>HTTP headers</td>
+<td><code>helmet</code> sets security headers; CORS restricted to
+<code>CORS_ORIGIN</code></td>
+</tr>
+<tr class="even">
+<td>Input validation</td>
+<td><code>validateTrade</code> + Mongoose enums/validators;
+regex-escaped search</td>
+</tr>
+<tr class="odd">
+<td>Secret handling</td>
+<td><code>backend/.env</code> is gitignored; <code>start-all.sh</code>
+auto-generates a random secret</td>
+</tr>
+<tr class="even">
+<td>Error leakage</td>
+<td>Stack traces only in development; sanitized messages in
+production</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="anticipated-viva-qa-short-answers">9. Anticipated Viva Q&amp;A
+(short answers)</h2>
+<p><strong>Q. Why did you choose the MERN-ish stack?</strong> React for
+fast, component-based UI; Vite for fast dev/build; Express for a
+lightweight, unopinionated REST layer; Mongoose for schema validation on
+top of flexible MongoDB; JWT for stateless auth.</p>
+<p><strong>Q. Why MongoDB instead of SQL?</strong> Trades contain nested
+data (mindset, tags arrays) that maps naturally to documents; schemas
+are flexible and evolve quickly; the project has one primary read
+pattern (per-user trade list) that MongoDB indexes handle well.</p>
+<p><strong>Q. How does authentication work?</strong> Client sends
+<code>Authorization: Bearer &lt;JWT&gt;</code> on each request. The
+<code>protect</code> middleware verifies the signature, loads the user,
+and sets <code>req.user</code>. The JWT payload contains only
+<code>{ id }</code> and an expiry — no password data.</p>
+<p><strong>Q. What is an optimistic update?</strong> Update the UI state
+immediately before the server confirms, then reconcile with the server
+response; roll back if the request fails. It makes the app feel
+instant.</p>
+<p><strong>Q. How is data kept separate between users?</strong> Every
+controller filters by <code>req.user._id</code>, which is derived from
+the token. There is no way to query another user’s data without their
+token.</p>
+<p><strong>Q. What happens if the backend is down?</strong> The API
+client shows the error message; optimistic changes are rolled back; the
+session is kept (only a 401 clears the token). The app remains usable
+but can’t sync.</p>
+<p><strong>Q. Why are trade ids strings, not ObjectIds?</strong> The
+frontend generates UUIDs at create/import time, so an exported CSV can
+be re-imported (with the same ids) into a new database/account without
+id collisions.</p>
+<p><strong>Q. How would you scale this?</strong> Add indexes on
+<code>user+date</code>, paginate <code>GET /api/trades</code>
+(limit/offset), move long-running analytics to aggregation pipelines or
+a reporting service, deploy the backend behind a reverse proxy with the
+frontend as static assets, and add automated tests + CI.</p>
+<hr />
+<h2 id="quick-troubleshooting-also-useful-in-the-viva">10. Quick
+Troubleshooting (also useful in the viva)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Backend won’t start: “JWT_SECRET is not defined”</td>
+<td>create <code>backend/.env</code> (or run <code>start-all.sh</code>
+once)</td>
+</tr>
+<tr class="even">
+<td>“MongoDB connection failed”</td>
+<td>start local MongoDB:
+<code>./scripts/setup-local-db.sh --ensure</code></td>
+</tr>
+<tr class="odd">
+<td>Port 5000/5173 already in use</td>
+<td>the servers are already running (start-all is idempotent)</td>
+</tr>
+<tr class="even">
+<td>Frontend API calls fail</td>
+<td>check the Vite proxy target matches the backend port</td>
+</tr>
+<tr class="odd">
+<td>Empty trade list</td>
+<td>you’re logged in as a different user (per-user isolation)</td>
+</tr>
+<tr class="even">
+<td>CSV import fails</td>
+<td>the header row must include recognizable columns (see
+<code>csv.ts</code>)</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
