@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TradeLog - Project Overview &amp; Flow</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 12.5px;
+    color: #1e293b;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 6px;
+  }
+  h1 { font-size: 26px; color: #0f172a; margin: 8px 0 4px; }
+  h2 { font-size: 19px; color: #0f766e; border-bottom: 2px solid #14b8a6; padding-bottom: 4px; margin-top: 28px; page-break-after: avoid; }
+  h3 { font-size: 15px; color: #0f172a; margin: 18px 0 6px; page-break-after: avoid; }
+  h4 { font-size: 13px; color: #334155; margin: 12px 0 4px; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 8px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code {
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
+  pre {
+    font-family: 'SF Mono', Consolas, Menlo, monospace;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 11px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 11.5px; page-break-inside: auto; }
+  th { background: #0f766e; color: #fff; text-align: left; }
+  th, td { border: 1px solid #cbd5e1; padding: 6px 9px; vertical-align: top; }
+  tr { page-break-inside: avoid; }
+  .title { text-align: center; padding: 22px 0 10px; }
+  .subtitle { color: #64748b; font-size: 13px; margin: 0 0 6px; }
+  .badge {
+    display: inline-block; background: #ccfbf1; color: #0f766e;
+    border: 1px solid #5eead4; border-radius: 12px; padding: 2px 10px;
+    font-size: 11px; font-weight: 600; margin: 2px 4px 2px 0;
+  }
+  .box {
+    border: 1px solid #e2e8f0; border-left: 4px solid #0f766e;
+    background: #f8fafc; border-radius: 6px; padding: 10px 14px; margin: 10px 0;
+  }
+  .box.warn { border-left-color: #d97706; background: #fffbeb; }
+  .box.info { border-left-color: #2563eb; background: #eff6ff; }
+  .stepflow {
+    display: flex; flex-direction: column; gap: 0; margin: 12px 0;
+  }
+  .sf {
+    display: flex; align-items: flex-start; margin: 0;
+  }
+  .sf .num {
+    flex: 0 0 24px; height: 24px; border-radius: 50%; background: #0f766e;
+    color: #fff; text-align: center; font-weight: 700; font-size: 12px; line-height: 24px; margin-right: 10px;
+  }
+  .sf .body { padding-bottom: 12px; border-left: 2px solid #99f6e4; margin-left: 11px; padding-left: 12px; }
+  .sf:last-child .body { border-left: 2px solid transparent; }
+  .sf .body strong { color: #0f172a; }
+  .meta { color: #64748b; font-size: 11.5px; }
+  .pagebreak { page-break-before: always; }
+  .center { text-align: center; }
+  .kv { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; margin: 8px 0; }
+  .kv div:nth-child(odd) { font-weight: 600; color: #0f766e; }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>TradeLog</h1>
+  <p class="subtitle">Trading Journal Web Application &mdash; Full Project Overview, Architecture and Request Flow</p>
+  <span class="badge">React 19</span><span class="badge">TypeScript</span><span class="badge">Vite 8</span><span class="badge">Tailwind CSS</span><span class="badge">Express 5</span><span class="badge">Mongoose 9</span><span class="badge">MongoDB</span><span class="badge">JWT Auth</span>
+</div>
+
+<h2>1. What the Project Is</h2>
+<p>
+  <strong>TradeLog</strong> is a trading journal web application. A trader records every trade
+  (entry/exit prices, stop loss, target, pair, session, direction, result, notes, screenshots, psychology)
+  and then reviews statistics and performance through dashboards, analytics, a rules checklist and
+  backtest tools.
+</p>
+<p>
+  The application is a <strong>frontend&#8209;backend separated</strong> app:
+</p>
+<ul>
+  <li><strong>Frontend</strong> (<code>frontend/</code>) &mdash; React single-page application (SPA).</li>
+  <li><strong>Backend</strong> (<code>backend/</code>) &mdash; REST API built with Express, exposing JWT-authenticated endpoints.</li>
+  <li><strong>Database</strong> &mdash; MongoDB (Mongoose ODM). Each user&rsquo;s data is scoped and isolated from every other user.</li>
+</ul>
+
+<h2>2. High-Level Architecture</h2>
+<p>The backend is the <strong>single source of truth</strong>. The frontend talks to it over HTTP/JSON.</p>
+
+<table>
+  <tr><th style="width:14%">Layer</th><th>What it does</th><th style="width:22%">Key files</th></tr>
+  <tr><td>Browser / SPA</td><td>Renders UI, holds the JWT, keeps local UI state (theme, settings).</td><td><code>frontend/src/</code></td></tr>
+  <tr><td>API client</td><td>Wraps <code>fetch</code>, attaches the <code>Bearer</code> token, handles 401.</td><td><code>frontend/src/lib/api.ts</code></td></tr>
+  <tr><td>Proxy</td><td>Vite dev server forwards <code>/api/*</code> to <code>localhost:5000</code> (no CORS in dev).</td><td><code>frontend/vite.config.ts</code></td></tr>
+  <tr><td>Backend API</td><td>Express 5 server: routing, auth middleware, validation, controllers, error handling.</td><td><code>backend/server.js</code>, <code>backend/routes/</code>, <code>backend/controllers/</code>, <code>backend/middleware/</code></td></tr>
+  <tr><td>Data layer</td><td>Mongoose models for <code>User</code> and <code>Trade</code>, connection setup.</td><td><code>backend/models/</code>, <code>backend/config/db.js</code></td></tr>
+  <tr><td>Database</td><td>MongoDB &mdash; local instance or MongoDB Atlas cluster.</td><td>&mdash;</td></tr>
+</table>
+
+<div class="center">
+  <pre>
++---------------------------+        HTTP /api/* (via Vite proxy)        +-----------------------------+
+|       BROWSER (SPA)       | ------------------------------------------> |       BACKEND (Express)     |
+|  React 19 + Vite 8 + TS   |                                            |  server.js  port 5000        |
+|  Tailwind + Recharts      | <------------------------------------------ |  routes/ + controllers/     |
+|                           |          JSON responses                   |  middleware/ (JWT, validate)|
++---------------------------+                                            +--------------+--------------+
+        |  localStorage / sessionStorage                                          | Mongoose
+        |  (JWT token, theme, rules, settings)                                    v
+        |                                                                  +----------------------+
+        +----------------------------------------------------------------> |       MongoDB        |
+                  VITE_API_URL = /api  (same origin)                       |   db: tradelog       |
+                                                                           |   collections:       |
+                                                                           |     users, trades    |
+                                                                           +----------------------+
+  </pre>
+</div>
+
+<h2>3. Project Layout</h2>
+<pre>
+/workspace
++-- README.md                 Project overview &amp; getting started
++-- backend/                  Express REST API
+|   +-- server.js             App entry: middleware, routes, DB connect, startup
+|   +-- .env.example          Documented environment variables (MONGO_URI, JWT_SECRET...)
+|   +-- config/db.js          Mongoose connection (reads MONGO_URI)
+|   +-- models/User.js        User schema (bcrypt hash, toJSON hides passwordHash)
+|   +-- models/Trade.js       Trade schema (string _id = client UUID, scoped to user)
+|   +-- routes/index.js       Mounts /health, /auth, /trades
+|   +-- routes/auth.routes.js       register, login, me, profile, password
+|   +-- routes/tradeRoutes.js       CRUD + bulk + clear-all (all protected)
+|   +-- routes/health.routes.js     GET /api/health
+|   +-- controllers/authController.js   register/login/me/updateProfile/changePassword
+|   +-- controllers/tradeController.js  list/get/create/update/delete/clearAll/bulk
+|   +-- middleware/auth.js     JWT "protect" middleware
+|   +-- middleware/validateTrade.js   Shape/format validation for trade payloads
+|   +-- middleware/errorHandler.js    notFound + centralized error handler
+|   +-- utils/asyncHandler.js  Wraps async controllers, forwards errors to next()
++-- frontend/                 React SPA
+|   +-- index.html / vite.config.ts / tailwind.config.js / package.json
+|   +-- src/main.tsx          React root + provider hierarchy
+|   +-- src/App.tsx           Router + protected routes + layout
+|   +-- src/types/Trade.ts    Frontend Trade type (mirrors backend schema)
+|   +-- src/lib/api.ts        API client (auth + trades endpoints)
+|   +-- src/lib/authStore.ts / AuthProvider.tsx    JWT session management
+|   +-- src/lib/TradeProvider.tsx / TradeContext.tsx  Server-synced trade state
+|   +-- src/lib/csv.ts        CSV/JSON export + import (TradeLog &amp; broker formats)
+|   +-- src/lib/analytics.ts  Win rate, RR, profit stats
+|   +-- src/pages/            Dashboard, TradeLog, AddEditTrade, AnalyticsPage,
+|                             RulesChecklist, BacktestProgress, ChartBacktest,
+|                             Login, Profile
+|   +-- src/components/        Navbar, TradeForm, TradeTable, StatCard, charts,
+|                             ThemeToggle, BackupReminder
+</pre>
+
+<h2>4. Tech Stack Summary</h2>
+<div class="kv">
+  <div>Frontend</div><div>React 19, Vite 8, TypeScript ~6, React Router 7, Tailwind CSS 3, Recharts 3, lucide-react icons</div>
+  <div>Backend</div><div>Node.js &ge; 20, Express 5, Mongoose 9, JSON Web Tokens (<code>jsonwebtoken</code>), <code>bcryptjs</code>, <code>helmet</code>, <code>cors</code>, <code>dotenv</code></div>
+  <div>Database</div><div>MongoDB 8 (local in this sandbox, or MongoDB Atlas from your machine)</div>
+  <div>Dev tooling</div><div>Vite dev server with <code>/api</code> proxy, ESLint (typescript-eslint + react-hooks), TypeScript <code>tsc -b</code> build, Tailwind + PostCSS, Autoprefixer</div>
+</div>
+
+<h2>5. Provider Hierarchy (Frontend)</h2>
+<p>Wrapping order in <code>frontend/src/main.tsx</code> &mdash; inner providers can use outer ones:</p>
+<pre>
+&lt;ThemeProvider&gt;            -- dark / light theme (persisted in localStorage)
+  &lt;AuthProvider&gt;          -- user session, JWT storage, login/register/profile
+    &lt;SettingsProvider&gt;    -- backtest goal settings, backup-reminder counters
+      &lt;TradeProvider&gt;     -- trade list + CRUD sync with the backend
+        &lt;App /&gt;           -- Router + pages
+</pre>
+
+<h2>6. Request Flow &mdash; End to End</h2>
+<p>Every screen request follows the same path:</p>
+<ol>
+  <li>Browser component calls a hook (<code>useAuth()</code>, <code>useTrades()</code>).</li>
+  <li>Hook calls the API client <code>frontend/src/lib/api.ts</code>.</li>
+  <li><code>api.ts</code> reads the saved JWT and calls <code>fetch(&quot;/api/...&quot;)</code> with <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+  <li>Vite dev server proxies <code>/api/*</code> &rarr; <code>http://localhost:5000</code>.</li>
+  <li>Express middleware chain: <code>helmet()</code> &rarr; <code>cors()</code> &rarr; <code>express.json()</code> &rarr; router &rarr; route &rarr; <code>protect</code> (JWT) &rarr; controller &rarr; Mongoose &rarr; MongoDB.</li>
+  <li>JSON response returns; on <code>401</code> the API client clears the token (auto-logout).</li>
+  <li>Component updates state; Recharts / tables re-render.</li>
+</ol>
+
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body"><strong>Component</strong> &mdash; e.g. <code>TradeLog</code> calls <code>const { trades, addTrade } = useTrades()</code>.</div></div>
+  <div class="sf"><div class="num">2</div><div class="body"><strong>Context</strong> &mdash; <code>TradeProvider</code> runs the optimistic update and calls the client.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body"><strong>API client</strong> &mdash; <code>api.trades.create(trade)</code> &rarr; <code>fetch('/api/trades', { method: 'POST', headers: { Authorization: 'Bearer ...' } })</code>.</div></div>
+  <div class="sf"><div class="num">4</div><div class="body"><strong>Vite proxy</strong> &mdash; rewrites the request to <code>http://localhost:5000/api/trades</code>.</div></div>
+  <div class="sf"><div class="num">5</div><div class="body"><strong>Backend</strong> &mdash; <code>tradeRoutes.js</code> &rarr; <code>protect</code> verifies JWT and loads <code>req.user</code> &rarr; <code>validateTrade</code> checks the payload &rarr; <code>tradeController.createTrade</code>.</div></div>
+  <div class="sf"><div class="num">6</div><div class="body"><strong>Mongoose</strong> &mdash; <code>Trade.create({ user: req.user._id, ... })</code> inserts into MongoDB.</div></div>
+  <div class="sf"><div class="num">7</div><div class="body"><strong>Response</strong> &mdash; <code>201 { success, message, data: trade }</code> returns; <code>TradeProvider</code> replaces the optimistic record with the server-confirmed one.</div></div>
+</div>
+
+<h2>7. Authentication Flow</h2>
+
+<h3>7.1 Registration</h3>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body">User fills <code>Login.tsx</code> register form (name, email, password).</div></div>
+  <div class="sf"><div class="num">2</div><div class="body"><code>AuthProvider.register()</code> &rarr; <code>api.auth.register()</code> &rarr; <code>POST /api/auth/register</code>.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body">Backend validates (email regex, password &ge; 6 chars). Duplicate email &rarr; <code>409</code>.</div></div>
+  <div class="sf"><div class="num">4</div><div class="body">Password hashed with <code>bcrypt.hash(password, 10)</code>; only the hash is stored.</div></div>
+  <div class="sf"><div class="num">5</div><div class="body">User saved; a JWT is signed: <code>jwt.sign({ id }, JWT_SECRET, { expiresIn: '7d' })</code>.</div></div>
+  <div class="sf"><div class="num">6</div><div class="body">Response: <code>201 { success, token, data: user }</code>. Frontend stores the token and sets the session.</div></div>
+</div>
+
+<h3>7.2 Login &amp; &ldquo;Remember me&rdquo;</h3>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body"><code>POST /api/auth/login</code> with <code>{ email, password }</code>.</div></div>
+  <div class="sf"><div class="num">2</div><div class="body">Backend finds the user by email, compares with <code>bcrypt.compare()</code>. Wrong credentials &rarr; <code>401</code>.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body">Success returns a JWT. Frontend stores it:
+    <ul>
+      <li><strong>Remember me = on</strong> &rarr; <code>localStorage</code> (persists across browser restarts).</li>
+      <li><strong>Remember me = off</strong> &rarr; <code>sessionStorage</code> (cleared when the tab closes).</li>
+    </ul>
+  </div></div>
+  <div class="sf"><div class="num">4</div><div class="body"><code>AuthProvider</code> sets <code>user</code>; protected routes now render.</div></div>
+</div>
+
+<h3>7.3 Session restore (page refresh)</h3>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body">On mount, <code>AuthProvider</code> checks for a stored token (<code>getAuthToken()</code>).</div></div>
+  <div class="sf"><div class="num">2</div><div class="body">If found, it calls <code>GET /api/auth/me</code> (JWT in the header) to fetch the user profile.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body">Valid token &rarr; session restored. Invalid/expired &rarr; token cleared, user redirected to <code>/login</code>.</div></div>
+</div>
+
+<h3>7.4 Profile update &amp; password change</h3>
+<ul>
+  <li><code>PUT /api/auth/profile</code> &mdash; protected; updates the logged-in user&rsquo;s <code>name</code>.</li>
+  <li><code>PUT /api/auth/password</code> &mdash; protected; verifies the current password, re-hashes and stores the new one.</li>
+</ul>
+
+<div class="box warn">
+  <strong>Security notes:</strong> the <code>toJSON</code> transform on the User model strips <code>passwordHash</code> from every API response;
+  passwords are only ever stored as bcrypt hashes; the backend refuses to start without a <code>JWT_SECRET</code>; <code>helmet</code> sets secure HTTP headers.
+</div>
+
+<h2>8. Trade Management Flow</h2>
+<p>
+  All trade endpoints are behind <code>protect</code>. Every query filters by <code>user: req.user._id</code>,
+  so <strong>each account only ever sees and modifies its own trades</strong> (server-side isolation).
+</p>
+
+<h3>8.1 Trade fields (shared schema)</h3>
+<p>
+  The frontend type <code>frontend/src/types/Trade.ts</code> mirrors the backend <code>models/Trade.js</code> exactly:
+  <code>id</code>, <code>date</code> (YYYY-MM-DD), <code>entryTime</code>, <code>pair</code>, <code>session</code>
+  (London / NewYork / Overlap / Other), <code>direction</code> (Buy / Sell), <code>zoneType</code> (Supply / Demand),
+  <code>entry</code>, <code>stopLoss</code>, <code>target</code>, <code>result</code> (Win / Loss / BreakEven / Open),
+  <code>rr</code>, <code>notes</code>, <code>tags[]</code>, <code>mindset { before, after }</code>, <code>emotion</code>,
+  <code>reason</code>, <code>screenshot</code>, <code>isValidRuleTrade</code>.
+</p>
+<p>
+  Trade <code>_id</code>s are <strong>client-generated UUIDs</strong> stored as strings. This keeps CSV/JSON
+  import/export round-trips stable (an imported trade keeps its original id).
+</p>
+
+<h3>8.2 Creating a trade</h3>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body"><code>TradeProvider.addTrade(trade)</code> generates <code>crypto.randomUUID()</code> and applies the change <strong>optimistically</strong> (instant UI).</div></div>
+  <div class="sf"><div class="num">2</div><div class="body"><code>POST /api/trades</code> &rarr; <code>validateTrade</code> &rarr; <code>Trade.create({ user: req.user._id, ...trade })</code>.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body">On success the server-confirmed trade replaces the optimistic one. On failure the optimistic trade is rolled back and an error banner shows.</div></div>
+</div>
+
+<h3>8.3 Updating / deleting</h3>
+<ul>
+  <li><code>PUT /api/trades/:id</code> &mdash; optimistic in-place update; reverted if the server rejects it.</li>
+  <li><code>DELETE /api/trades/:id</code> &mdash; optimistic removal; kept for undo, restored if the request fails.</li>
+  <li><code>DELETE /api/trades</code> &mdash; clear all trades for the current user.</li>
+  <li><strong>Undo</strong> &mdash; deleted trades are remembered in <code>lastDeleted</code>; <code>undoDelete()</code> re-imports them via <code>POST /api/trades/bulk</code>.</li>
+</ul>
+
+<h3>8.4 Bulk import (CSV / JSON)</h3>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body">User drops a file. <code>csv.ts</code> detects the format:
+    <ul>
+      <li><strong>TradeLog export</strong> (has <code>id</code>, <code>result</code>, <code>rr</code> columns) &rarr; <code>parseCsv</code>.</li>
+      <li><strong>Broker export</strong> (date/symbol/entry...) &rarr; <code>parseBrokerCsv</code> auto-maps columns and computes <code>rr</code>/result.</li>
+      <li><strong>JSON</strong> &rarr; array of trades, or <code>{ trades: [...] }</code>.</li>
+    </ul>
+  </div></div>
+  <div class="sf"><div class="num">2</div><div class="body">Rows are de-duplicated against existing trade ids.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body"><code>POST /api/trades/bulk</code> with <code>{ trades: [...] }</code> &rarr; <code>Trade.insertMany(docs, { ordered: false })</code>.</div></div>
+  <div class="sf"><div class="num">4</div><div class="body">Fresh trades appear in the list; count returned to the user.</div></div>
+</div>
+
+<h3>8.5 Listing &amp; filtering</h3>
+<p><code>GET /api/trades</code> supports query filters: <code>search</code> (regex on pair), <code>direction</code>, <code>result</code>, <code>startDate</code>/<code>endDate</code>, and whitelisted <code>sort</code> fields (e.g. <code>-createdAt</code>).</p>
+
+<h2>9. API Reference</h2>
+<table>
+  <tr><th>Method &amp; Path</th><th>Auth</th><th>Description</th></tr>
+  <tr><td><code>GET /api/health</code></td><td>No</td><td>Liveness check <code>{ status: 'ok', timestamp }</code></td></tr>
+  <tr><td><code>POST /api/auth/register</code></td><td>No</td><td>Create account &rarr; <code>201</code> with token + user</td></tr>
+  <tr><td><code>POST /api/auth/login</code></td><td>No</td><td>Login &rarr; token + user (<code>401</code> on bad credentials)</td></tr>
+  <tr><td><code>GET /api/auth/me</code></td><td>JWT</td><td>Current user profile</td></tr>
+  <tr><td><code>PUT /api/auth/profile</code></td><td>JWT</td><td>Update <code>name</code></td></tr>
+  <tr><td><code>PUT /api/auth/password</code></td><td>JWT</td><td>Change password (verifies current)</td></tr>
+  <tr><td><code>GET /api/trades</code></td><td>JWT</td><td>List/filter user&rsquo;s trades</td></tr>
+  <tr><td><code>POST /api/trades</code></td><td>JWT</td><td>Create one trade</td></tr>
+  <tr><td><code>DELETE /api/trades</code></td><td>JWT</td><td>Clear all user&rsquo;s trades</td></tr>
+  <tr><td><code>POST /api/trades/bulk</code></td><td>JWT</td><td>Bulk import trades</td></tr>
+  <tr><td><code>GET /api/trades/:id</code></td><td>JWT</td><td>Get one trade</td></tr>
+  <tr><td><code>PUT /api/trades/:id</code></td><td>JWT</td><td>Update one trade</td></tr>
+  <tr><td><code>DELETE /api/trades/:id</code></td><td>JWT</td><td>Delete one trade</td></tr>
+</table>
+
+<h2>10. Data Models</h2>
+
+<h3>User (<code>backend/models/User.js</code>)</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+  <tr><td><code>name</code></td><td>String</td><td>required, trimmed</td></tr>
+  <tr><td><code>email</code></td><td>String</td><td>required, unique, lowercase, validated by regex</td></tr>
+  <tr><td><code>passwordHash</code></td><td>String</td><td>bcrypt hash (10 rounds); never serialized to JSON</td></tr>
+  <tr><td><code>createdAt/updatedAt</code></td><td>Date</td><td>auto via <code>timestamps: true</code></td></tr>
+</table>
+
+<h3>Trade (<code>backend/models/Trade.js</code>)</h3>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+  <tr><td><code>_id</code></td><td>String</td><td>default <code>crypto.randomUUID()</code> &mdash; keeps CSV round-trip ids</td></tr>
+  <tr><td><code>user</code></td><td>ObjectId ref &rarr; User</td><td>required, indexed &mdash; ownership + isolation</td></tr>
+  <tr><td><code>date</code></td><td>String YYYY-MM-DD</td><td>required</td></tr>
+  <tr><td><code>entryTime</code></td><td>String</td><td>optional</td></tr>
+  <tr><td><code>pair</code></td><td>String</td><td>required, uppercased</td></tr>
+  <tr><td><code>session</code></td><td>enum</td><td>London / NewYork / Overlap / Other (default Other)</td></tr>
+  <tr><td><code>direction</code></td><td>enum</td><td>Buy / Sell (required)</td></tr>
+  <tr><td><code>zoneType</code></td><td>enum</td><td>Supply / Demand</td></tr>
+  <tr><td><code>entry / stopLoss / target</code></td><td>Number &gt; 0</td><td>required, validated positive</td></tr>
+  <tr><td><code>result</code></td><td>enum</td><td>Win / Loss / BreakEven / Open</td></tr>
+  <tr><td><code>rr</code></td><td>Number &ge; 0</td><td>risk/reward ratio</td></tr>
+  <tr><td><code>notes / emotion / reason / screenshot</code></td><td>String</td><td>optional</td></tr>
+  <tr><td><code>tags</code></td><td>[String]</td><td>default []</td></tr>
+  <tr><td><code>mindset</code></td><td><code>{ before, after }</code></td><td>optional strings</td></tr>
+  <tr><td><code>isValidRuleTrade</code></td><td>Boolean</td><td>default false</td></tr>
+</table>
+
+<h2>11. Frontend Pages &amp; What They Do</h2>
+<table>
+  <tr><th>Route</th><th>Page</th><th>Purpose</th></tr>
+  <tr><td><code>/login</code></td><td>Login</td><td>Login / register form, &ldquo;remember me&rdquo;</td></tr>
+  <tr><td><code>/</code></td><td>Dashboard</td><td>Stat cards (trades, win rate, P&amp;L, RR), recent trades</td></tr>
+  <tr><td><code>/log</code></td><td>TradeLog</td><td>Full trade table with search/filter, bulk select, delete, export</td></tr>
+  <tr><td><code>/add</code>, <code>/edit/:id</code></td><td>AddEditTrade</td><td>Trade form (create / edit), duplicate</td></tr>
+  <tr><td><code>/analytics</code></td><td>AnalyticsPage</td><td>Equity curve, candle chart, stats via Recharts</td></tr>
+  <tr><td><code>/checklist</code></td><td>RulesChecklist</td><td>Trading rules checklist (stored locally per browser)</td></tr>
+  <tr><td><code>/backtest</code></td><td>BacktestProgress</td><td>Backtest goal tracking</td></tr>
+  <tr><td><code>/backtest/chart</code></td><td>ChartBacktest</td><td>Chart-based backtest tool</td></tr>
+  <tr><td><code>/profile</code></td><td>Profile</td><td>Edit name, change password, export/backup data</td></tr>
+</table>
+<p class="meta">
+  Protected routes redirect to <code>/login</code> when no user session exists (see <code>App.tsx</code> ProtectedRoute).
+</p>
+
+<h2>12. What Is Stored Where</h2>
+<table>
+  <tr><th>Data</th><th>Location</th><th>Why</th></tr>
+  <tr><td>Users + trades</td><td>MongoDB (backend) &mdash; source of truth</td><td>Server-side, per-user isolation, survives browser clears</td></tr>
+  <tr><td>JWT token</td><td><code>localStorage</code> or <code>sessionStorage</code></td><td>Remember-me decides which; API client attaches it</td></tr>
+  <tr><td>Theme (dark/light)</td><td><code>localStorage</code></td><td>UI preference</td></tr>
+  <tr><td>Trading rules checklist</td><td><code>localStorage</code> (<code>tradelog.rules.*</code>)</td><td>Browser-local preference (not yet migrated to DB)</td></tr>
+  <tr><td>Backtest goal settings, backup reminder counters</td><td><code>localStorage</code></td><td>Browser-local settings</td></tr>
+</table>
+
+<h2>13. Startup Flow &mdash; How Everything Boots</h2>
+<div class="stepflow">
+  <div class="sf"><div class="num">1</div><div class="body"><strong>Backend</strong> &mdash; <code>cd backend &amp;&amp; npm run dev</code> (nodemon &rarr; <code>server.js</code>).</div></div>
+  <div class="sf"><div class="num">2</div><div class="body"><code>dotenv</code> loads <code>backend/.env</code>; missing <code>JWT_SECRET</code> aborts startup.</div></div>
+  <div class="sf"><div class="num">3</div><div class="body"><code>connectDB()</code> connects Mongoose to <code>MONGO_URI</code>; failure aborts startup.</div></div>
+  <div class="sf"><div class="num">4</div><div class="body">Express starts on port <code>5000</code>. Routes mounted under <code>/api</code>. 404 and error handlers last.</div></div>
+  <div class="sf"><div class="num">5</div><div class="body"><strong>Frontend</strong> &mdash; <code>cd frontend &amp;&amp; npm run dev</code> starts Vite on port <code>5173</code>.</div></div>
+  <div class="sf"><div class="num">6</div><div class="body">Vite serves the SPA and proxies <code>/api/*</code> &rarr; <code>localhost:5000</code>; same-origin calls need no CORS in dev.</div></div>
+  <div class="sf"><div class="num">7</div><div class="body">Browser loads <code>index.html</code> &rarr; React mounts &rarr; providers initialize &rarr; session restore &rarr; page renders.</div></div>
+</div>
+
+<h2>14. Running Locally / on Atlas</h2>
+<pre>
+# Backend
+cd backend
+npm install
+cp .env.example .env        # then set MONGO_URI and JWT_SECRET
+npm run dev                 # http://localhost:5000
+
+# Frontend
+cd frontend
+npm install
+npm run dev                 # http://localhost:5173
+</pre>
+<p>
+  <code>VITE_API_URL</code> is optional; when unset the client uses <code>/api</code>, which works through the Vite proxy in development.
+</p>
+<p>
+  <strong>Environment variables</strong> (<code>backend/.env.example</code>):
+</p>
+<table>
+  <tr><th>Variable</th><th>Purpose</th></tr>
+  <tr><td><code>NODE_ENV</code></td><td>development / production</td></tr>
+  <tr><td><code>PORT</code></td><td>API port (default 5000)</td></tr>
+  <tr><td><code>MONGO_URI</code></td><td>Local: <code>mongodb://127.0.0.1:27017/tradelog</code> &nbsp;|&nbsp; Atlas: <code>mongodb+srv://&lt;user&gt;:&lt;pass&gt;@&lt;cluster&gt;.mongodb.net/tradelog?retryWrites=true&amp;w=majority</code></td></tr>
+  <tr><td><code>CORS_ORIGIN</code></td><td>Comma-separated allowed origins (default: all)</td></tr>
+  <tr><td><code>JWT_SECRET</code></td><td>JWT signing secret (required)</td></tr>
+  <tr><td><code>JWT_EXPIRES_IN</code></td><td>Token lifetime (default 7d)</td></tr>
+</table>
+
+<h2>15. MongoDB &mdash; Local vs Atlas (current status)</h2>
+<div class="box info">
+  <strong>Current environment:</strong> this sandbox preview runs against a <strong>local MongoDB</strong>
+  (<code>mongodb://127.0.0.1:27017/tradelog</code>, MongoDB 8). The Atlas connection string is already
+  prepared in <code>backend/.env</code> and <code>backend/.env.example</code>, ready to switch.
+</div>
+<p>
+  To move to <strong>MongoDB Atlas</strong>:
+</p>
+<ol>
+  <li>Set <code>MONGO_URI</code> in <code>backend/.env</code> to your Atlas cluster string.</li>
+  <li>Whitelist your machine&rsquo;s public IP under Atlas &rarr; Network Access (already done for <code>27.34.73.7/32</code>).</li>
+  <li>Restart the backend; new accounts and trades are then stored on Atlas.</li>
+</ol>
+<div class="box warn">
+  <strong>Note:</strong> data written to the sandbox&rsquo;s local MongoDB does not automatically move to Atlas.
+  Export your trades (CSV) in the app and re-import them after registering on Atlas, or start fresh.
+  The current <code>backend/.env</code> is gitignored and keeps the sandbox-local URI active.
+</div>
+
+<h2>16. Build &amp; Quality Checks</h2>
+<table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>cd frontend &amp;&amp; npm run build</code></td><td>TypeScript project build (<code>tsc -b</code>) + Vite production build</td></tr>
+  <tr><td><code>cd frontend &amp;&amp; npm run lint</code></td><td>ESLint over <code>src/</code> (typescript-eslint + react-hooks rules)</td></tr>
+  <tr><td><code>cd backend &amp;&amp; npm start</code></td><td>Production-style backend start</td></tr>
+</table>
+<p class="meta">
+  Verified in this workspace: build and lint both exit 0; the API was end-to-end tested through the
+  Vite proxy (register, login, me, duplicate-email 409, wrong-password 401, create/list/update/delete/
+  bulk/clear-all, change password, and cross-user isolation).
+</p>
+
+<h2>17. Repository &amp; Git</h2>
+<ul>
+  <li>Remote: <code>https://github.com/nabingiri99/tradelog</code> (branch <code>main</code>).</li>
+  <li><code>backend/.env</code> is <strong>gitignored</strong> &mdash; secrets (JWT_SECRET, Atlas password) never enter the repository; only the <code>.env.example</code> template is committed.</li>
+  <li>Commits follow the message style used in the repo (e.g. <code>feat: connect frontend to backend with JWT auth</code>).</li>
+</ul>
+
+<div class="pagebreak"></div>
+<h2>18. End-to-End Scenario Walkthrough</h2>
+<p>A complete example: a trader opens the app, signs up, records a trade, reviews analytics, and backs up data.</p>
+
+<h3>Scenario A &mdash; First run</h3>
+<ol>
+  <li>Open the frontend (Vite dev server, port 5173).</li>
+  <li>No stored token &rarr; <code>AuthProvider.restoring</code> resolves immediately, <code>user = null</code>, <code>ProtectedRoute</code> redirects to <code>/login</code>.</li>
+  <li>Trader fills the register form. <code>AuthProvider.register()</code> &rarr; <code>POST /api/auth/register</code>.</li>
+  <li>Backend hashes password, creates <code>User</code>, returns <code>201</code> + JWT.</li>
+  <li>Token stored, <code>user</code> set. App re-renders and <code>TradeProvider</code> fetches <code>GET /api/trades</code> (empty list for a new user).</li>
+  <li>Dashboard renders with zeroed stats.</li>
+</ol>
+
+<h3>Scenario B &mdash; Log a trade</h3>
+<ol>
+  <li>Trader opens <code>/add</code>, fills the form (pair, direction, entry, stop loss, target, result, notes, tags, psychology).</li>
+  <li>Submit &rarr; <code>TradeProvider.addTrade()</code>: a UUID is generated, the table shows the trade instantly (optimistic).</li>
+  <li><code>POST /api/trades</code> persists it under <code>user: req.user._id</code>.</li>
+  <li>Confirmed record replaces the optimistic row. Stats recompute from <code>trades</code>.</li>
+</ol>
+
+<h3>Scenario C &mdash; Review performance</h3>
+<ol>
+  <li>Trader opens <code>/analytics</code>.</li>
+  <li><code>analytics.ts</code> computes win rate, average RR, profit/loss from the current <code>trades</code> state.</li>
+  <li>Recharts renders the equity curve and candle chart from the same array.</li>
+</ol>
+
+<h3>Scenario D &mdash; Backup / migrate</h3>
+<ol>
+  <li>In <code>/log</code> or Profile, the trader exports a CSV (<code>tradesToCsv</code>) containing trade ids.</li>
+  <li>BackupReminder counts trades logged since the last export and nudges the trader to export.</li>
+  <li>To migrate to Atlas: register a new account there, then import the CSV &rarr; <code>parseCsv</code> &rarr; <code>POST /api/trades/bulk</code> &rarr; trades restored with their original ids.</li>
+</ol>
+
+<h2>19. Security &amp; Reliability Summary</h2>
+<ul>
+  <li><strong>AuthN:</strong> JWT (HS256, signed with <code>JWT_SECRET</code>), verified on every protected route.</li>
+  <li><strong>AuthZ:</strong> all trade queries filter by <code>user</code>; cross-user access returns 404.</li>
+  <li><strong>Passwords:</strong> bcrypt hashed, never returned by the API.</li>
+  <li><strong>Headers:</strong> <code>helmet</code>; CORS restricted to configured origins.</li>
+  <li><strong>Input:</strong> schema enums + positive-number validation at the middleware and Mongoose levels.</li>
+  <li><strong>Resilience:</strong> centralized error handler maps Mongoose errors (validation, cast, duplicate key) to clean HTTP responses; async errors are caught by <code>asyncHandler</code>.</li>
+  <li><strong>Frontend:</strong> optimistic updates roll back on failure; bulk operations are de-duplicated; 401 auto-clears the session.</li>
+</ul>
+
+<h2>20. Possible Next Steps</h2>
+<ul>
+  <li>Run on your own machine against MongoDB Atlas (uncomment the Atlas URI in <code>backend/.env</code>).</li>
+  <li>Migrate the trading-rules checklist and backtest-goal settings from <code>localStorage</code> into MongoDB so they sync across devices.</li>
+  <li>Add JWT refresh tokens, email verification, or password reset.</li>
+  <li>Add automated tests (unit + API integration) and CI.</li>
+  <li>Deploy backend and frontend to a hosting provider; serve the built frontend statically behind the API.</li>
+</ul>
+
+<div class="box info">
+  <p class="meta" style="margin:0">
+    Generated for reference &mdash; TradeLog. This document reflects the code committed to
+    <code>github.com/nabingiri99/tradelog</code> (commit <code>809ec93</code>).
+  </p>
+</div>
+
+</body>
+</html>
