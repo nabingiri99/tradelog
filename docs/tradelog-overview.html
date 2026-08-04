@@ -135,6 +135,11 @@
 <pre>
 /workspace
 +-- README.md                 Project overview &amp; getting started
++-- scripts/                  Local dev helpers
+|   +-- setup-local-db.sh     Install + start local MongoDB (Linux/macOS)
+|   +-- setup-local-db.ps1    Install + start local MongoDB (Windows)
+|   +-- start-all.sh          One-command start: mongo + backend + frontend
+|   +-- stop-all.sh           Stop backend + frontend
 +-- backend/                  Express REST API
 |   +-- server.js             App entry: middleware, routes, DB connect, startup
 |   +-- .env.example          Documented environment variables (MONGO_URI, JWT_SECRET...)
@@ -391,18 +396,22 @@
 </div>
 
 <h2>14. Running Locally / on Atlas</h2>
+<p><strong>Local MongoDB is the default — no cloud required.</strong></p>
 <pre>
-# Backend
-cd backend
-npm install
-cp .env.example .env        # then set MONGO_URI and JWT_SECRET
-npm run dev                 # http://localhost:5000
+# One-command start: installs/start local MongoDB, backend and frontend
+./scripts/setup-local-db.sh   # optional: install + start local MongoDB
+./scripts/start-all.sh        # MongoDB + backend (:5000) + frontend (:5173)
+./scripts/stop-all.sh         # stop backend + frontend (MongoDB stays up)
 
-# Frontend
-cd frontend
-npm install
-npm run dev                 # http://localhost:5173
+# Manual alternative
+cd backend  && npm install && npm run dev   # http://localhost:5000
+cd frontend && npm install && npm run dev   # http://localhost:5173
 </pre>
+<ul>
+  <li>On Windows, run <code>scripts/setup-local-db.ps1</code> first (installs + starts local MongoDB), then the two <code>npm run dev</code> commands above.</li>
+  <li><code>start-all.sh</code> generates a random <code>JWT_SECRET</code> into <code>backend/.env</code> on first run, and is idempotent (already-running services are reused).</li>
+  <li>Logs: <code>logs/backend.log</code>, <code>logs/frontend.log</code>.</li>
+</ul>
 <p>
   <code>VITE_API_URL</code> is optional; when unset the client uses <code>/api</code>, which works through the Vite proxy in development.
 </p>
@@ -421,12 +430,13 @@ npm run dev                 # http://localhost:5173
 
 <h2>15. MongoDB &mdash; Local vs Atlas (current status)</h2>
 <div class="box info">
-  <strong>Current environment:</strong> this sandbox preview runs against a <strong>local MongoDB</strong>
-  (<code>mongodb://127.0.0.1:27017/tradelog</code>, MongoDB 8). The Atlas connection string is already
-  prepared in <code>backend/.env</code> and <code>backend/.env.example</code>, ready to switch.
+  <strong>Default setup (recommended):</strong> the project runs fully on a <strong>local MongoDB</strong>
+  (<code>mongodb://127.0.0.1:27017/tradelog</code>, MongoDB 8). This sandbox preview runs this way,
+  and the included scripts (<code>scripts/setup-local-db.sh</code> / <code>scripts/setup-local-db.ps1</code>)
+  install and start local MongoDB on any machine. Atlas is optional and just a <code>MONGO_URI</code> switch.
 </div>
 <p>
-  To move to <strong>MongoDB Atlas</strong>:
+  To switch to <strong>MongoDB Atlas</strong> instead of local:
 </p>
 <ol>
   <li>Set <code>MONGO_URI</code> in <code>backend/.env</code> to your Atlas cluster string.</li>
