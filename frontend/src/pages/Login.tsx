@@ -106,7 +106,32 @@ export default function Login() {
   const isRegister = mode === "register";
 
   return (
-    <div className="relative flex min-h-screen bg-slate-100 dark:bg-slate-950">
+    <div className="relative flex min-h-screen flex-col bg-slate-100 dark:bg-slate-950">
+      {/* Top header bar */}
+      <header className="relative z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/70 px-6 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 sm:px-8">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 shadow-md shadow-indigo-900/20">
+            <LineChart className="h-5 w-5 text-white" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-lg font-bold leading-none text-transparent dark:from-indigo-300 dark:to-emerald-300">
+              TradeLog
+            </p>
+            <p className="mt-0.5 text-[11px] leading-none text-slate-500">
+              Trading Journal & Backtester
+            </p>
+          </div>
+        </div>
+        <div className="hidden items-center gap-6 text-sm text-slate-500 dark:text-slate-400 sm:flex">
+          <a href="#features" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
+            Features
+          </a>
+          <a href="#security" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
+            Security
+          </a>
+        </div>
+      </header>
+
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-48 left-1/4 h-[32rem] w-[32rem] rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-600/15" />
         <div className="absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-600/10" />
@@ -114,7 +139,7 @@ export default function Login() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(100,116,139,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(100,116,139,0.06)_1px,transparent_1px)] bg-[size:48px_48px] dark:bg-[linear-gradient(to_right,rgba(148,163,184,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.04)_1px,transparent_1px)]" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-10 px-6 py-12 lg:flex-row lg:gap-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-10 px-6 py-12 lg:flex-row lg:gap-20">
         {/* Brand panel */}
         <div className="w-full max-w-lg lg:flex-1">
           <div className="flex items-center gap-3">
@@ -141,7 +166,7 @@ export default function Login() {
             live market data — all from one focused workspace.
           </p>
 
-          <ul className="mt-8 space-y-4">
+          <ul id="features" className="mt-8 space-y-4">
             {FEATURES.map((feature) => (
               <li key={feature.title} className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-indigo-600 dark:border-slate-800 dark:bg-slate-900 dark:text-indigo-400">
@@ -157,7 +182,7 @@ export default function Login() {
             ))}
           </ul>
 
-          <div className="mt-8 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:border-emerald-800/40 dark:text-emerald-300">
+          <div id="security" className="mt-8 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-700 dark:border-emerald-800/40 dark:text-emerald-300">
             <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
               <p>
                 <span className="font-medium">Server-backed & secure.</span>{" "}
@@ -352,6 +377,11 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-slate-200 bg-white/70 px-6 py-4 text-center text-xs text-slate-400 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-600">
+        &copy; {new Date().getFullYear()} TradeLog &mdash; Your journal data is stored in your own MongoDB database behind JWT authentication.
+      </footer>
     </div>
   );
 }
