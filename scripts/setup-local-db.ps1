@@ -13,6 +13,7 @@
 #>
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 $MongoHost = "127.0.0.1"
 $MongoPort = 27017
 $DbPath = Join-Path $env:LOCALAPPDATA "TradeLog\MongoDB\data"
