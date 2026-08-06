@@ -42,12 +42,22 @@ function Install-Mongod {
   Write-Step "MongoDB not found. Downloading MongoDB Community Server..."
   $url = "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.5.zip"
   $zip = Join-Path $env:TEMP "mongodb.zip"
-  Invoke-WebRequest -Uri $url -OutFile $zip
-  $extract = Join-Path $env:LOCALAPPDATA "TradeLog\MongoDB\bin"
+  if (-not (Test-Path $zip)) {
+    Invoke-WebRequest -Uri $url -OutFile $zip
+  } else {
+    Write-Step "Using already-downloaded $zip"
+  }
+  $extract = Join-Path $env:LOCALAPPDATA "TradeLog\MongoDB"
   Expand-Archive -Path $zip -DestinationPath $extract -Force
-  $env:PATH += ";$(Join-Path $extract (Get-ChildItem $extract -Directory | Select-Object -First 1 -ExpandProperty FullName))"
-  [Environment]::SetEnvironmentVariable("PATH", $env:PATH, "User")
-  Write-Step "MongoDB downloaded and extracted. You may need a new terminal for PATH to refresh."
+  $mongod = Get-ChildItem -Path $extract -Recurse -Filter "mongod.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $mongod) {
+    Write-Err "Could not find mongod.exe after extraction. Try installing MongoDB Community manually from https://www.mongodb.com/try/download/community"
+  }
+  $binDir = $mongod.DirectoryName
+  $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+  [Environment]::SetEnvironmentVariable("PATH", "$userPath;$binDir", "User")
+  $env:PATH += ";$binDir"
+  Write-Step "MongoDB downloaded and extracted to $binDir"
 }
 
 if (-not (Get-Command mongod -ErrorAction SilentlyContinue)) {
