@@ -67,21 +67,40 @@ const HOW_IT_WORKS = [
 
 const CHANGELOG = [
   {
-    tag: "v1.2",
-    title: "Professional landing page & request logging",
-    text: "New branded header, How it works / Changelog sections, and live API request logs.",
+    version: "1.2.0",
+    date: "August 2026",
+    summary: "Landing page & observability",
+    items: [
+      { type: "Added", text: "Branded header and landing sections (How it works, Changelog, About)" },
+      { type: "Improved", text: "Live request logging for every API call" },
+    ],
   },
   {
-    tag: "v1.1",
-    title: "Fully local setup",
-    text: "Local MongoDB with one-command start scripts for Linux, macOS, and Windows.",
+    version: "1.1.0",
+    date: "August 2026",
+    summary: "Local-first setup",
+    items: [
+      { type: "Added", text: "Local MongoDB with one-command start scripts for Linux, macOS, and Windows" },
+      { type: "Improved", text: "Automatic .env generation with a secure random JWT secret" },
+    ],
   },
   {
-    tag: "v1.0",
-    title: "JWT authentication & server-backed journal",
-    text: "Secure accounts, per-user trade isolation, optimistic CRUD, and CSV import/export.",
+    version: "1.0.0",
+    date: "July 2026",
+    summary: "Initial release",
+    items: [
+      { type: "Added", text: "JWT authentication with per-user trade isolation" },
+      { type: "Added", text: "Server-backed journal: CRUD, optimistic updates, CSV import/export" },
+      { type: "Added", text: "Candlestick chart backtesting and performance analytics" },
+    ],
   },
 ];
+
+const CHANGELOG_BADGES: Record<string, string> = {
+  Added: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  Improved: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  Fixed: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+};
 
 const ABOUT_TEXT =
   "TradeLog is a full-stack trading journal and backtester built with React, Express, and MongoDB. Every account owns an isolated journal, trades are stored server-side, and all sessions are protected with JWT authentication. Your data stays in your own database - local by default, cloud-ready on demand.";
@@ -149,37 +168,48 @@ export default function Login() {
   const isRegister = mode === "register";
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-100 dark:bg-slate-950">
+    <div id="top" className="relative flex min-h-screen flex-col bg-slate-100 dark:bg-slate-950">
       {/* Top header bar */}
-      <header className="relative z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/70 px-6 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 sm:px-8">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 shadow-md shadow-indigo-900/20">
-            <LineChart className="h-5 w-5 text-white" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-lg font-bold leading-none text-transparent dark:from-indigo-300 dark:to-emerald-300">
-              TradeLog
-            </p>
-            <p className="mt-0.5 text-[11px] leading-none text-slate-500">
-              Trading Journal & Backtester
-            </p>
-          </div>
-        </div>
-        <div className="hidden items-center gap-6 text-sm text-slate-500 dark:text-slate-400 sm:flex">
-          <a href="#features" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
-            Features
+      <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/80">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 sm:px-8">
+          <a href="#top" className="flex items-center gap-3" aria-label="TradeLog home">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 shadow-md shadow-indigo-900/20">
+              <LineChart className="h-5 w-5 text-white" aria-hidden="true" />
+            </span>
+            <span>
+              <span className="block bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-lg font-bold leading-none text-transparent dark:from-indigo-300 dark:to-emerald-300">
+                TradeLog
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-none text-slate-500">
+                Trading Journal &amp; Backtester
+              </span>
+            </span>
           </a>
-          <a href="#how" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
-            How it works
-          </a>
-          <a href="#security" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
-            Security
-          </a>
-          <a href="#changelog" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
-            Changelog
-          </a>
-          <a href="#about" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
-            About
+
+          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400 md:flex">
+            {[
+              ["#features", "Features"],
+              ["#how", "How it works"],
+              ["#security", "Security"],
+              ["#changelog", "Changelog"],
+              ["#about", "About"],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="group relative py-1 transition-colors hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                {label}
+                <span className="absolute inset-x-0 -bottom-px h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-600 to-emerald-600 transition-transform duration-200 group-hover:scale-x-100" />
+              </a>
+            ))}
+          </nav>
+
+          <a
+            href="#signin"
+            className="hidden rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-900/20 transition-colors hover:bg-indigo-500 sm:inline-flex"
+          >
+            Sign in
           </a>
         </div>
       </header>
@@ -245,7 +275,7 @@ export default function Login() {
         </div>
 
         {/* Form panel */}
-        <div className="w-full max-w-md lg:w-[26rem] lg:flex-none">
+        <div id="signin" className="w-full max-w-md lg:w-[26rem] lg:flex-none scroll-mt-24">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-black/40 dark:backdrop-blur sm:p-8">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -472,29 +502,45 @@ export default function Login() {
             Changelog
           </p>
           <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
-            Recent updates
+            Release history
           </h2>
         </div>
-        <ol className="mt-10 space-y-4">
+        <div className="mt-10 space-y-8">
           {CHANGELOG.map((entry) => (
-            <li
-              key={entry.tag}
-              className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60"
+            <article
+              key={entry.version}
+              className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 sm:p-7"
             >
-              <span className="flex h-8 w-14 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                {entry.tag}
-              </span>
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {entry.title}
-                </h3>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  {entry.text}
-                </p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="rounded-md bg-slate-900 px-2.5 py-1 font-mono text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                    v{entry.version}
+                  </span>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                    {entry.summary}
+                  </h3>
+                </div>
+                <time className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                  {entry.date}
+                </time>
               </div>
-            </li>
+              <ul className="mt-4 space-y-2.5">
+                {entry.items.map((item, index) => (
+                  <li key={index} className="flex items-start gap-3 text-sm">
+                    <span
+                      className={`mt-0.5 shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold ${CHANGELOG_BADGES[item.type] ?? "bg-slate-500/10 text-slate-600 dark:text-slate-400"}`}
+                    >
+                      {item.type}
+                    </span>
+                    <span className="text-slate-600 dark:text-slate-400">
+                      {item.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </article>
           ))}
-        </ol>
+        </div>
       </section>
 
       {/* About */}
