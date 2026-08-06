@@ -19,6 +19,16 @@ app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    console.log(
+      `${new Date().toISOString()} ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`
+    );
+  });
+  next();
+});
+
 app.get('/', (req, res) => {
   res.json({
     name: 'TradeLog API',
