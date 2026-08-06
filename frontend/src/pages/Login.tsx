@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Check,
   Lock,
+  Info,
 } from "lucide-react";
 import { useAuth } from "../lib/authStore";
 
@@ -42,6 +43,48 @@ const FEATURES = [
     text: "Your journal lives in your own MongoDB database, protected by JWT authentication.",
   },
 ];
+
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    icon: LineChart,
+    title: "Log your trades",
+    text: "Record every entry, stop-loss, and take-profit with setup, session, and R:R in seconds.",
+  },
+  {
+    step: "02",
+    icon: BookOpen,
+    title: "Review against your rules",
+    text: "Validate each entry against your custom pre-trade checklist before and after the trade.",
+  },
+  {
+    step: "03",
+    icon: ChartCandlestick,
+    title: "Backtest your strategy",
+    text: "Replay historical candles with a TradingView-style chart and measure your edge over time.",
+  },
+];
+
+const CHANGELOG = [
+  {
+    tag: "v1.2",
+    title: "Professional landing page & request logging",
+    text: "New branded header, How it works / Changelog sections, and live API request logs.",
+  },
+  {
+    tag: "v1.1",
+    title: "Fully local setup",
+    text: "Local MongoDB with one-command start scripts for Linux, macOS, and Windows.",
+  },
+  {
+    tag: "v1.0",
+    title: "JWT authentication & server-backed journal",
+    text: "Secure accounts, per-user trade isolation, optimistic CRUD, and CSV import/export.",
+  },
+];
+
+const ABOUT_TEXT =
+  "TradeLog is a full-stack trading journal and backtester built with React, Express, and MongoDB. Every account owns an isolated journal, trades are stored server-side, and all sessions are protected with JWT authentication. Your data stays in your own database - local by default, cloud-ready on demand.";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -126,8 +169,17 @@ export default function Login() {
           <a href="#features" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
             Features
           </a>
+          <a href="#how" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
+            How it works
+          </a>
           <a href="#security" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
             Security
+          </a>
+          <a href="#changelog" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
+            Changelog
+          </a>
+          <a href="#about" className="transition-colors hover:text-slate-900 dark:hover:text-slate-100">
+            About
           </a>
         </div>
       </header>
@@ -377,6 +429,105 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* How it works */}
+      <section id="how" className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16 sm:px-8">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+            How it works
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
+            From entry to edge in three steps
+          </h2>
+        </div>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {HOW_IT_WORKS.map((item) => (
+            <div
+              key={item.step}
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60"
+            >
+              <div className="flex items-center justify-between">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+                  <item.icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="text-2xl font-bold text-slate-200 dark:text-slate-700">
+                  {item.step}
+                </span>
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Changelog */}
+      <section id="changelog" className="relative z-10 mx-auto w-full max-w-3xl px-6 py-16 sm:px-8">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            Changelog
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
+            Recent updates
+          </h2>
+        </div>
+        <ol className="mt-10 space-y-4">
+          {CHANGELOG.map((entry) => (
+            <li
+              key={entry.tag}
+              className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60"
+            >
+              <span className="flex h-8 w-14 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                {entry.tag}
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {entry.title}
+                </h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  {entry.text}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* About */}
+      <section id="about" className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-16 sm:px-8">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+            <Info className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-100">
+            About TradeLog
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            {ABOUT_TEXT}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+              React
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+              Express
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+              MongoDB
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+              JWT Auth
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+              Node.js
+            </span>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-slate-200 bg-white/70 px-6 py-4 text-center text-xs text-slate-400 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-600">
