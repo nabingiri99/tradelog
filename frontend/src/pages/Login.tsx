@@ -72,7 +72,9 @@ const CHANGELOG = [
     summary: "Landing page & observability",
     items: [
       { type: "Added", text: "Branded header and landing sections (How it works, Changelog, About)" },
-      { type: "Improved", text: "Live request logging for every API call" },
+      { type: "Added", text: "Live request logging with method, path, status, and latency for every API call" },
+      { type: "Improved", text: "Login page redesigned with a professional header, footer, and release history" },
+      { type: "Improved", text: "Responsive layout polish for tablets and small screens" },
     ],
   },
   {
@@ -81,7 +83,11 @@ const CHANGELOG = [
     summary: "Local-first setup",
     items: [
       { type: "Added", text: "Local MongoDB with one-command start scripts for Linux, macOS, and Windows" },
+      { type: "Added", text: "Windows PowerShell installer that downloads, extracts, and starts MongoDB automatically" },
+      { type: "Added", text: "Idempotent start/stop scripts that handle the full stack (MongoDB, backend, frontend)" },
       { type: "Improved", text: "Automatic .env generation with a secure random JWT secret" },
+      { type: "Improved", text: "Health-check on startup so the app only boots once the database is reachable" },
+      { type: "Fixed", text: "MongoDB PATH resolution on Windows when the mongod binary lives in a nested folder" },
     ],
   },
   {
@@ -89,9 +95,14 @@ const CHANGELOG = [
     date: "July 2026",
     summary: "Initial release",
     items: [
-      { type: "Added", text: "JWT authentication with per-user trade isolation" },
-      { type: "Added", text: "Server-backed journal: CRUD, optimistic updates, CSV import/export" },
-      { type: "Added", text: "Candlestick chart backtesting and performance analytics" },
+      { type: "Added", text: "JWT authentication with per-user trade isolation and remember-me sessions" },
+      { type: "Added", text: "Server-backed journal: full CRUD, optimistic updates, and undo" },
+      { type: "Added", text: "CSV import/export for backup and offline analysis" },
+      { type: "Added", text: "Dashboard analytics: win rate, total R, average R, streaks, and session breakdowns" },
+      { type: "Added", text: "Custom pre-trade rules checklist to validate every entry" },
+      { type: "Added", text: "Backtest progress tracker and TradingView-style candlestick chart backtester" },
+      { type: "Added", text: "Equity curve and performance charts powered by Recharts" },
+      { type: "Added", text: "Dark mode with a light/dark theme toggle" },
     ],
   },
 ];
