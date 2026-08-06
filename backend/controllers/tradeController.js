@@ -7,7 +7,6 @@ const tradeFields = [
   'pair',
   'session',
   'direction',
-  'zoneType',
   'entry',
   'stopLoss',
   'target',

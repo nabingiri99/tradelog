@@ -107,7 +107,6 @@ The API mirrors the frontend `Trade` type. `id` is a client-generated UUID store
 | `pair`          | String  | Yes      | e.g. `EURUSD`, uppercased                |
 | `session`       | String  | No       | `London`, `NewYork`, `Overlap`, `Other`  |
 | `direction`     | String  | Yes      | `Buy` or `Sell`                          |
-| `zoneType`      | String  | No       | `Supply` or `Demand`                     |
 | `entry`         | Number  | Yes      | Positive                                 |
 | `stopLoss`      | Number  | Yes      | Positive                                 |
 | `target`        | Number  | Yes      | Positive                                 |
@@ -155,7 +154,6 @@ curl -X POST http://localhost:5000/api/trades \
     "pair": "EURUSD",
     "session": "London",
     "direction": "Buy",
-    "zoneType": "Demand",
     "entry": 1.085,
     "stopLoss": 1.08,
     "target": 1.095,

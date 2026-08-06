@@ -2,8 +2,6 @@ export type SessionType = "London" | "NewYork" | "Overlap" | "Other";
 
 export type DirectionType = "Buy" | "Sell";
 
-export type ZoneType = "Supply" | "Demand";
-
 export type ResultType = "Win" | "Loss" | "BreakEven" | "Open";
 
 export interface Trade {
@@ -13,7 +11,6 @@ export interface Trade {
   pair: string;
   session: SessionType;
   direction: DirectionType;
-  zoneType: ZoneType;
   entry: number;
   stopLoss: number;
   target: number;

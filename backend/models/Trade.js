@@ -44,14 +44,6 @@ const tradeSchema = new mongoose.Schema(
         message: 'Direction must be either "Buy" or "Sell"',
       },
     },
-    zoneType: {
-      type: String,
-      enum: {
-        values: ['Supply', 'Demand'],
-        message: 'Invalid zone type',
-      },
-      default: 'Demand',
-    },
     entry: {
       type: Number,
       required: [true, 'Entry price is required'],

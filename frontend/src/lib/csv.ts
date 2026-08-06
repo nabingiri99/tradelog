@@ -7,7 +7,6 @@ const HEADERS = [
   "pair",
   "session",
   "direction",
-  "zoneType",
   "entry",
   "stopLoss",
   "target",
@@ -118,7 +117,6 @@ export function parseCsv(content: string): Trade[] {
 
     const session = row.cell("session") as Trade["session"];
     const direction = row.cell("direction") as Trade["direction"];
-    const zoneType = row.cell("zoneType") as Trade["zoneType"];
     const result = row.cell("result") as Trade["result"];
     const tags = row
       .cell("tags")
@@ -135,7 +133,6 @@ export function parseCsv(content: string): Trade[] {
         ? session
         : "Other",
       direction: direction === "Sell" ? "Sell" : "Buy",
-      zoneType: zoneType === "Supply" ? "Supply" : "Demand",
       entry: toNumber(row.cell("entry")),
       stopLoss: toNumber(row.cell("stopLoss")),
       target: toNumber(row.cell("target")),
@@ -244,7 +241,6 @@ export function parseBrokerCsv(content: string): Trade[] {
       pair: pairRaw.toUpperCase(),
       session: "Other",
       direction: guessDirection(typeCol ? row.cell(typeCol) : "", "", String(entry)),
-      zoneType: "Demand",
       entry,
       stopLoss,
       target,

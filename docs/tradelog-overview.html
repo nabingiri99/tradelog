@@ -266,7 +266,7 @@
 <p>
   The frontend type <code>frontend/src/types/Trade.ts</code> mirrors the backend <code>models/Trade.js</code> exactly:
   <code>id</code>, <code>date</code> (YYYY-MM-DD), <code>entryTime</code>, <code>pair</code>, <code>session</code>
-  (London / NewYork / Overlap / Other), <code>direction</code> (Buy / Sell), <code>zoneType</code> (Supply / Demand),
+  (London / NewYork / Overlap / Other), <code>direction</code> (Buy / Sell),
   <code>entry</code>, <code>stopLoss</code>, <code>target</code>, <code>result</code> (Win / Loss / BreakEven / Open),
   <code>rr</code>, <code>notes</code>, <code>tags[]</code>, <code>mindset { before, after }</code>, <code>emotion</code>,
   <code>reason</code>, <code>screenshot</code>, <code>isValidRuleTrade</code>.
@@ -347,7 +347,6 @@
   <tr><td><code>pair</code></td><td>String</td><td>required, uppercased</td></tr>
   <tr><td><code>session</code></td><td>enum</td><td>London / NewYork / Overlap / Other (default Other)</td></tr>
   <tr><td><code>direction</code></td><td>enum</td><td>Buy / Sell (required)</td></tr>
-  <tr><td><code>zoneType</code></td><td>enum</td><td>Supply / Demand</td></tr>
   <tr><td><code>entry / stopLoss / target</code></td><td>Number &gt; 0</td><td>required, validated positive</td></tr>
   <tr><td><code>result</code></td><td>enum</td><td>Win / Loss / BreakEven / Open</td></tr>
   <tr><td><code>rr</code></td><td>Number &ge; 0</td><td>risk/reward ratio</td></tr>

@@ -1,11 +1,10 @@
 const SESSIONS = ['London', 'NewYork', 'Overlap', 'Other'];
 const DIRECTIONS = ['Buy', 'Sell'];
-const ZONE_TYPES = ['Supply', 'Demand'];
 const RESULTS = ['Win', 'Loss', 'BreakEven', 'Open'];
 
 const validateTrade = (req, res, next) => {
   const body = req.body || {};
-  const { pair, direction, entry, stopLoss, target, session, zoneType, result } = body;
+  const { pair, direction, entry, stopLoss, target, session, result } = body;
   const errors = [];
   const isCreate = req.method === 'POST';
 
@@ -41,10 +40,6 @@ const validateTrade = (req, res, next) => {
 
   if (session !== undefined && !SESSIONS.includes(session)) {
     errors.push('session must be one of: London, NewYork, Overlap, Other');
-  }
-
-  if (zoneType !== undefined && !ZONE_TYPES.includes(zoneType)) {
-    errors.push('zoneType must be either "Supply" or "Demand"');
   }
 
   if (result !== undefined && !RESULTS.includes(result)) {

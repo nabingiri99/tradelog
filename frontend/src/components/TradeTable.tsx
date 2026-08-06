@@ -3,7 +3,7 @@ import { Pencil, Trash2, CheckCircle2, AlertTriangle, Copy, ArrowUp, ArrowDown, 
 import type { Trade } from "../types/Trade";
 import { useTrades } from "../lib/TradeContext";
 
-export type SortKey = "date" | "pair" | "session" | "direction" | "zoneType" | "entry" | "stopLoss" | "target" | "result" | "rr";
+export type SortKey = "date" | "pair" | "session" | "direction" | "entry" | "stopLoss" | "target" | "result" | "rr";
 export type SortDir = "asc" | "desc";
 
 export interface TradeTableProps {
@@ -135,7 +135,6 @@ export default function TradeTable({
     { key: "pair", label: "Pair" },
     { key: "session", label: "Session" },
     { key: "direction", label: "Direction" },
-    { key: "zoneType", label: "Zone" },
     { key: "entry", label: "Entry" },
     { key: "stopLoss", label: "SL" },
     { key: "target", label: "TP" },
@@ -212,9 +211,6 @@ export default function TradeTable({
               <td className={cellClass}>{SESSIONS[trade.session] ?? trade.session}</td>
               <td className={cellClass}>
                 <DirectionBadge direction={trade.direction} />
-              </td>
-              <td className={cellClass}>
-                <span className="text-xs text-slate-600 dark:text-slate-400">{trade.zoneType}</span>
               </td>
               <td className={cellClass}>{trade.entry}</td>
               <td className={cellClass}>{trade.stopLoss}</td>

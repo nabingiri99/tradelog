@@ -725,16 +725,15 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href=
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pair&quot;</span><span class="fu">:</span> <span class="st">&quot;EURUSD&quot;</span><span class="fu">,</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;session&quot;</span><span class="fu">:</span> <span class="st">&quot;London&quot;</span><span class="fu">,</span></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;direction&quot;</span><span class="fu">:</span> <span class="st">&quot;Buy&quot;</span><span class="fu">,</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;zoneType&quot;</span><span class="fu">:</span> <span class="st">&quot;Demand&quot;</span><span class="fu">,</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entry&quot;</span><span class="fu">:</span> <span class="fl">1.10</span><span class="fu">,</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;stopLoss&quot;</span><span class="fu">:</span> <span class="fl">1.09</span><span class="fu">,</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;target&quot;</span><span class="fu">:</span> <span class="fl">1.12</span><span class="fu">,</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;result&quot;</span><span class="fu">:</span> <span class="st">&quot;Win&quot;</span><span class="fu">,</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rr&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="st">&quot;nice setup&quot;</span><span class="fu">,</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tags&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;sniper&quot;</span><span class="ot">,</span> <span class="st">&quot;trend&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isValidRuleTrade&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;entry&quot;</span><span class="fu">:</span> <span class="fl">1.10</span><span class="fu">,</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;stopLoss&quot;</span><span class="fu">:</span> <span class="fl">1.09</span><span class="fu">,</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;target&quot;</span><span class="fu">:</span> <span class="fl">1.12</span><span class="fu">,</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;result&quot;</span><span class="fu">:</span> <span class="st">&quot;Win&quot;</span><span class="fu">,</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rr&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;notes&quot;</span><span class="fu">:</span> <span class="st">&quot;nice setup&quot;</span><span class="fu">,</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tags&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;sniper&quot;</span><span class="ot">,</span> <span class="st">&quot;trend&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isValidRuleTrade&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="jwt-middleware-middlewareauth.js">5.4 JWT middleware
 (<code>middleware/auth.js</code>)</h3>
 <ol type="1">
@@ -759,11 +758,10 @@ middleware (<code>middleware/validateTrade.js</code>)</h3>
 <code>stopLoss</code>, <code>target</code>. For <strong>update</strong>
 (<code>PUT</code>): validates only the fields that are present. Enums
 validated: <code>session</code> ∈ London/NewYork/Overlap/Other;
-<code>direction</code> ∈ Buy/Sell; <code>zoneType</code> ∈
-Supply/Demand; <code>result</code> ∈ Win/Loss/BreakEven/Open. Numbers
-(<code>entry</code>, <code>stopLoss</code>, <code>target</code>) must be
-positive numbers. On any error → <code>400</code> with an
-<code>errors</code> array.</p>
+<code>direction</code> ∈ Buy/Sell; <code>result</code> ∈
+Win/Loss/BreakEven/Open. Numbers (<code>entry</code>,
+<code>stopLoss</code>, <code>target</code>) must be positive numbers. On
+any error → <code>400</code> with an <code>errors</code> array.</p>
 <h3 id="error-handler-middlewareerrorhandler.js">5.6 Error handler
 (<code>middleware/errorHandler.js</code>)</h3>
 <ul>
@@ -871,42 +869,37 @@ ids</td>
 <td>Buy / Sell (required)</td>
 </tr>
 <tr class="even">
-<td><code>zoneType</code></td>
-<td>enum</td>
-<td>Supply / Demand</td>
-</tr>
-<tr class="odd">
 <td><code>entry</code>, <code>stopLoss</code>, <code>target</code></td>
 <td>Number &gt; 0</td>
 <td>required, validated</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>result</code></td>
 <td>enum</td>
 <td>Win / Loss / BreakEven / Open</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>rr</code></td>
 <td>Number ≥ 0</td>
 <td>risk/reward</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>notes</code>, <code>emotion</code>, <code>reason</code>,
 <code>screenshot</code></td>
 <td>String</td>
 <td>optional</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>tags</code></td>
 <td>[String]</td>
 <td>default <code>[]</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>mindset</code></td>
 <td><code>{ before, after }</code></td>
 <td>optional</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>isValidRuleTrade</code></td>
 <td>Boolean</td>
 <td>default false</td>

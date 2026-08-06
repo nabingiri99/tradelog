@@ -394,7 +394,6 @@ Example trade object (create):
   "pair": "EURUSD",
   "session": "London",
   "direction": "Buy",
-  "zoneType": "Demand",
   "entry": 1.10,
   "stopLoss": 1.09,
   "target": 1.12,
@@ -421,7 +420,7 @@ All trade routes and `/auth/me`, `/auth/profile`, `/auth/password` use `protect`
 For **create** (`POST`): requires `pair`, `direction`, `entry`, `stopLoss`, `target`.
 For **update** (`PUT`): validates only the fields that are present.
 Enums validated: `session` ∈ London/NewYork/Overlap/Other; `direction` ∈ Buy/Sell;
-`zoneType` ∈ Supply/Demand; `result` ∈ Win/Loss/BreakEven/Open.
+`result` ∈ Win/Loss/BreakEven/Open.
 Numbers (`entry`, `stopLoss`, `target`) must be positive numbers.
 On any error → `400` with an `errors` array.
 
@@ -460,7 +459,6 @@ On any error → `400` with an `errors` array.
 | `pair` | String | required, uppercased |
 | `session` | enum | London / NewYork / Overlap / Other |
 | `direction` | enum | Buy / Sell (required) |
-| `zoneType` | enum | Supply / Demand |
 | `entry`, `stopLoss`, `target` | Number > 0 | required, validated |
 | `result` | enum | Win / Loss / BreakEven / Open |
 | `rr` | Number ≥ 0 | risk/reward |

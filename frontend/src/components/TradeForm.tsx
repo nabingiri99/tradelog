@@ -10,13 +10,11 @@ import type {
   ResultType,
   SessionType,
   Trade,
-  ZoneType,
 } from "../types/Trade";
 
 const COMMON_PAIRS = ["EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "AUDUSD"] as const;
 const SESSIONS: SessionType[] = ["London", "NewYork", "Overlap", "Other"];
 const DIRECTIONS: DirectionType[] = ["Buy", "Sell"];
-const ZONE_TYPES: ZoneType[] = ["Supply", "Demand"];
 const RESULTS: ResultType[] = ["Open", "Win", "Loss", "BreakEven"];
 const EMOTIONS = [
   { value: "Calm", label: "Calm" },
@@ -92,9 +90,6 @@ export default function TradeForm({
   );
   const [direction, setDirection] = useState<DirectionType>(
     initialTrade?.direction ?? "Buy",
-  );
-  const [zoneType, setZoneType] = useState<ZoneType>(
-    initialTrade?.zoneType ?? "Demand",
   );
   const [entry, setEntry] = useState(
     initialTrade ? String(initialTrade.entry) : "",
@@ -204,7 +199,6 @@ export default function TradeForm({
       pair: pair.toUpperCase(),
       session,
       direction,
-      zoneType,
       entry: entryValue,
       stopLoss: stopValue,
       target: targetValue,
@@ -337,23 +331,6 @@ export default function TradeForm({
                 aria-pressed={direction === option}
                 className={toggleClass(direction === option)}
                 onClick={() => setDirection(option)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <span className={labelClass}>Zone Type</span>
-          <div className="flex gap-2">
-            {ZONE_TYPES.map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={zoneType === option}
-                className={toggleClass(zoneType === option)}
-                onClick={() => setZoneType(option)}
               >
                 {option}
               </button>
