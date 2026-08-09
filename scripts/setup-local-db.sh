@@ -44,15 +44,18 @@ install_mongod() {
     Linux)
       if command -v apt-get >/dev/null 2>&1; then
         log "Installing MongoDB via official MongoDB repo (apt)..."
-        local distro
+        local os_id distro dist_component
+        os_id="$(grep -oP '(?<=^ID=).*' /etc/os-release 2>/dev/null | tr -d '"' || true)"
         distro="$(grep -oP '(?<=^VERSION_CODENAME=).*' /etc/os-release 2>/dev/null || true)"
         [ -z "$distro" ] && die "Could not detect Debian/Ubuntu codename from /etc/os-release"
+        case "$os_id" in
+          ubuntu) dist_component="ubuntu" ;;
+          *)      dist_component="debian" ;;
+        esac
         curl -fsSL "https://www.mongodb.org/static/pgp/server-8.0.asc" \
-          | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
-        echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/${distro}/mongodb-org/8.0 ${distro}/mongodb-org/8.0 main" \
-          > /tmp/mongodb-org-8.0.list
-        # Fall back to a distro-less path in case codename mapping fails
-        cp /tmp/mongodb-org-8.0.list /etc/apt/sources.list.d/mongodb-org-8.0.list
+          | gpg --batch --yes --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+        echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/${dist_component} ${distro}/mongodb-org/8.0 main" \
+          > /etc/apt/sources.list.d/mongodb-org-8.0.list
         DEBIAN_FRONTEND=noninteractive apt-get update
         DEBIAN_FRONTEND=noninteractive apt-get install -y mongodb-org
       elif command -v dnf >/dev/null 2>&1; then
