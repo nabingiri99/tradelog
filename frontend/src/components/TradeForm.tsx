@@ -100,6 +100,15 @@ export default function TradeForm({
   const [target, setTarget] = useState(
     initialTrade ? String(initialTrade.target) : "",
   );
+  const [positionSize, setPositionSize] = useState(
+    initialTrade?.positionSize != null ? String(initialTrade.positionSize) : "",
+  );
+  const [riskAmount, setRiskAmount] = useState(
+    initialTrade?.riskAmount != null ? String(initialTrade.riskAmount) : "",
+  );
+  const [pnlAmount, setPnlAmount] = useState(
+    initialTrade?.pnlAmount != null ? String(initialTrade.pnlAmount) : "",
+  );
   const [result, setResult] = useState<ResultType>(
     initialTrade?.result ?? "Open",
   );
@@ -137,11 +146,12 @@ export default function TradeForm({
     ) {
       return null;
     }
-    const risk = Math.abs(entryValue - stopValue);
-    if (risk === 0) return null;
-    const reward = Math.abs(targetValue - entryValue);
-    return Math.round((reward / risk) * 100) / 100;
-  }, [entry, stopLoss, target]);
+    const risk = direction === "Sell" ? stopValue - entryValue : entryValue - stopValue;
+    if (risk <= 0) return 0;
+    const reward =
+      direction === "Sell" ? entryValue - targetValue : targetValue - entryValue;
+    return Math.round((Math.max(reward, 0) / risk) * 100) / 100;
+  }, [entry, stopLoss, target, direction]);
 
   function toggleRule(id: string) {
     setRuleChecks((prev) => {
@@ -187,11 +197,25 @@ export default function TradeForm({
       setError("Entry price and stop loss price must be different.");
       return;
     }
+    if (direction === "Buy" && stopValue > entryValue) {
+      setError("Stop loss must be below the entry price for a Buy.");
+      return;
+    }
+    if (direction === "Sell" && stopValue < entryValue) {
+      setError("Stop loss must be above the entry price for a Sell.");
+      return;
+    }
 
     const tags = tagsText
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+
+    const parseOptional = (value: string): number | undefined => {
+      if (value.trim() === "") return undefined;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : undefined;
+    };
 
     const payload = {
       date,
@@ -204,6 +228,9 @@ export default function TradeForm({
       target: targetValue,
       result,
       rr: rr ?? 0,
+      positionSize: parseOptional(positionSize),
+      riskAmount: parseOptional(riskAmount),
+      pnlAmount: parseOptional(pnlAmount),
       notes: notes.trim() || undefined,
       tags: tags.length > 0 ? tags : undefined,
       emotion: emotion || undefined,
@@ -402,6 +429,53 @@ export default function TradeForm({
         </div>
 
         <div>
+          <label className={labelClass} htmlFor="positionSize">
+            Position Size <span className="font-normal text-slate-500">(optional)</span>
+          </label>
+          <input
+            id="positionSize"
+            type="number"
+            step="any"
+            min="0"
+            placeholder="e.g. units / lots"
+            className={inputClass}
+            value={positionSize}
+            onChange={(e) => setPositionSize(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="riskAmount">
+            Risk Amount ($) <span className="font-normal text-slate-500">(optional)</span>
+          </label>
+          <input
+            id="riskAmount"
+            type="number"
+            step="any"
+            min="0"
+            placeholder="e.g. 50"
+            className={inputClass}
+            value={riskAmount}
+            onChange={(e) => setRiskAmount(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="pnlAmount">
+            P&amp;L Amount ($) <span className="font-normal text-slate-500">(optional)</span>
+          </label>
+          <input
+            id="pnlAmount"
+            type="number"
+            step="any"
+            placeholder="e.g. +120 or -50"
+            className={inputClass}
+            value={pnlAmount}
+            onChange={(e) => setPnlAmount(e.target.value)}
+          />
+        </div>
+
+        <div>
           <label className={labelClass} htmlFor="emotion">
             Emotion
           </label>
@@ -445,6 +519,9 @@ export default function TradeForm({
             </p>
             <p className="text-2xl font-semibold text-violet-400">
               {rr === null ? "—" : `${rr.toFixed(2)}R`}
+            </p>
+            <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
+              Auto-calculated from entry, stop loss and target
             </p>
           </div>
         </div>

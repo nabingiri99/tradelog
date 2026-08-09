@@ -4,7 +4,7 @@ const RESULTS = ['Win', 'Loss', 'BreakEven', 'Open'];
 
 const validateTrade = (req, res, next) => {
   const body = req.body || {};
-  const { pair, direction, entry, stopLoss, target, session, result } = body;
+  const { pair, direction, entry, stopLoss, target, session, result, positionSize, riskAmount, pnlAmount } = body;
   const errors = [];
   const isCreate = req.method === 'POST';
 
@@ -44,6 +44,18 @@ const validateTrade = (req, res, next) => {
 
   if (result !== undefined && !RESULTS.includes(result)) {
     errors.push('result must be one of: Win, Loss, BreakEven, Open');
+  }
+
+  if (positionSize !== undefined && positionSize !== null && (typeof positionSize !== 'number' || !(positionSize > 0))) {
+    errors.push('positionSize must be a positive number');
+  }
+
+  if (riskAmount !== undefined && riskAmount !== null && (typeof riskAmount !== 'number' || !(riskAmount >= 0))) {
+    errors.push('riskAmount must be a non-negative number');
+  }
+
+  if (pnlAmount !== undefined && pnlAmount !== null && (typeof pnlAmount !== 'number' || !Number.isFinite(pnlAmount))) {
+    errors.push('pnlAmount must be a number');
   }
 
   if (errors.length > 0) {

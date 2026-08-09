@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -15,6 +15,9 @@ import {
   Flame,
   Crown,
   Skull,
+  Wallet,
+  ShieldAlert,
+  AlertTriangle,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -28,8 +31,10 @@ import {
 } from "recharts";
 import StatCard from "../components/StatCard";
 import EquityCurveChart from "../components/EquityCurveChart";
+import DollarEquityChart from "../components/DollarEquityChart";
 import { cssVar } from "../lib/themeColors";
 import { useTrades } from "../lib/TradeContext";
+import { useAuth } from "../lib/authStore";
 import type { SessionType } from "../types/Trade";
 
 const SESSION_LABELS: Record<SessionType, string> = {
@@ -39,6 +44,29 @@ const SESSION_LABELS: Record<SessionType, string> = {
   Other: "Other",
 };
 
+const RANGE_PRESETS = [
+  { key: "all", label: "All" },
+  { key: "7d", label: "7D" },
+  { key: "30d", label: "30D" },
+  { key: "90d", label: "90D" },
+  { key: "ytd", label: "YTD" },
+  { key: "custom", label: "Custom" },
+] as const;
+
+type RangePreset = (typeof RANGE_PRESETS)[number]["key"];
+
+const DAILY_LOSS_WARNING_PCT = 5;
+
+function isoDaysAgo(n: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+function isoToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 const pairHeaderClass =
   "whitespace-nowrap px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400";
 const pairCellClass = "whitespace-nowrap px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300";
@@ -46,10 +74,35 @@ const pairCellClass = "whitespace-nowrap px-3 py-2.5 text-sm text-slate-700 dark
 export default function Dashboard() {
   const navigate = useNavigate();
   const { trades } = useTrades();
+  const { user } = useAuth();
+
+  const [preset, setPreset] = useState<RangePreset>("all");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
+  const range = useMemo(() => {
+    if (preset === "all") return { from: undefined, to: undefined };
+    if (preset === "7d") return { from: isoDaysAgo(6), to: isoToday() };
+    if (preset === "30d") return { from: isoDaysAgo(29), to: isoToday() };
+    if (preset === "90d") return { from: isoDaysAgo(89), to: isoToday() };
+    if (preset === "ytd")
+      return { from: `${isoToday().slice(0, 4)}-01-01`, to: isoToday() };
+    return { from: customFrom || undefined, to: customTo || undefined };
+  }, [preset, customFrom, customTo]);
+
+  const filteredTrades = useMemo(
+    () =>
+      trades.filter((t) => {
+        if (range.from && t.date < range.from) return false;
+        if (range.to && t.date > range.to) return false;
+        return true;
+      }),
+    [trades, range],
+  );
 
   const stats = useMemo(() => {
-    const total = trades.length;
-    const closed = trades.filter((t) => t.result !== "Open");
+    const total = filteredTrades.length;
+    const closed = filteredTrades.filter((t) => t.result !== "Open");
     const wins = closed.filter((t) => t.result === "Win");
     const losses = closed.filter((t) => t.result === "Loss");
     const breaks = closed.filter((t) => t.result === "BreakEven");
@@ -68,10 +121,10 @@ export default function Dashboard() {
         : 0;
 
     return { total, closed: closed.length, wins: wins.length, losses: losses.length, breaks: breaks.length, winRate, totalR, avgR };
-  }, [trades]);
+  }, [filteredTrades]);
 
   const advanced = useMemo(() => {
-    const closed = trades
+    const closed = filteredTrades
       .filter((t) => t.result !== "Open")
       .map((t) => ({
         ...t,
@@ -139,14 +192,64 @@ export default function Dashboard() {
       bestTrade,
       worstTrade,
     };
-  }, [trades, stats.totalR]);
+  }, [filteredTrades, stats.totalR]);
+
+  const dollarStats = useMemo(() => {
+    const pnlTrades = filteredTrades.filter((t) => t.pnlAmount != null);
+    const netPnl = pnlTrades.reduce((s, t) => s + (t.pnlAmount ?? 0), 0);
+    const riskTrades = filteredTrades.filter((t) => t.riskAmount != null);
+    const totalRisk = riskTrades.reduce((s, t) => s + (t.riskAmount ?? 0), 0);
+    return {
+      hasPnl: pnlTrades.length > 0,
+      netPnl,
+      pnlCount: pnlTrades.length,
+      hasRisk: riskTrades.length > 0,
+      totalRisk,
+    };
+  }, [filteredTrades]);
+
+  const riskStats = useMemo(() => {
+    const balance = user?.accountBalance;
+    const riskTrades = filteredTrades.filter((t) => t.riskAmount != null);
+    const withPct = balance && balance > 0
+      ? riskTrades.map((t) => ((t.riskAmount ?? 0) / balance) * 100)
+      : [];
+    return {
+      balance,
+      count: riskTrades.length,
+      avgRiskPct:
+        withPct.length > 0
+          ? withPct.reduce((s, p) => s + p, 0) / withPct.length
+          : null,
+      maxRiskPct: withPct.length > 0 ? Math.max(...withPct) : null,
+    };
+  }, [filteredTrades, user]);
+
+  const dailyLoss = useMemo(() => {
+    const balance = user?.accountBalance;
+    if (!balance || balance <= 0) return null;
+    const byDay = new Map<string, number>();
+    for (const t of filteredTrades) {
+      if (t.pnlAmount == null) continue;
+      byDay.set(t.date, (byDay.get(t.date) ?? 0) + t.pnlAmount);
+    }
+    let worst: { date: string; pnl: number } | null = null;
+    for (const [date, pnl] of byDay) {
+      if (pnl < 0 && (!worst || pnl < worst.pnl)) worst = { date, pnl };
+    }
+    if (!worst) return null;
+    return {
+      ...worst,
+      pct: (Math.abs(worst.pnl) / balance) * 100,
+    };
+  }, [filteredTrades, user]);
 
   const monthlyData = useMemo(() => {
     const map = new Map<
       string,
       { trades: number; wins: number; losses: number; netR: number }
     >();
-    for (const t of trades) {
+    for (const t of filteredTrades) {
       if (t.result === "Open") continue;
       const key = t.date.slice(0, 7);
       const entry = map.get(key) ?? { trades: 0, wins: 0, losses: 0, netR: 0 };
@@ -168,12 +271,12 @@ export default function Dashboard() {
           s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0,
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
-  }, [trades]);
+  }, [filteredTrades]);
 
   const sessionData = useMemo(() => {
     const sessions: SessionType[] = ["London", "NewYork", "Overlap", "Other"];
     return sessions.map((s) => {
-      const sessionTrades = trades.filter((t) => t.session === s);
+      const sessionTrades = filteredTrades.filter((t) => t.session === s);
       const wins = sessionTrades.filter((t) => t.result === "Win").length;
       const losses = sessionTrades.filter((t) => t.result === "Loss").length;
       return {
@@ -182,11 +285,11 @@ export default function Dashboard() {
         Losses: losses,
       };
     });
-  }, [trades]);
+  }, [filteredTrades]);
 
   const pairData = useMemo(() => {
     const byPair = new Map<string, { wins: number; losses: number; netR: number; total: number }>();
-    for (const t of trades) {
+    for (const t of filteredTrades) {
       const entry = byPair.get(t.pair) ?? { wins: 0, losses: 0, netR: 0, total: 0 };
       entry.total += 1;
       if (t.result === "Win") {
@@ -208,7 +311,7 @@ export default function Dashboard() {
         };
       })
       .sort((a, b) => b.netR - a.netR);
-  }, [trades]);
+  }, [filteredTrades]);
 
   if (trades.length === 0) {
     return (
@@ -249,6 +352,72 @@ export default function Dashboard() {
           Overview of your trading performance
         </p>
       </div>
+
+      {/* Date range filter */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+        <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+          Period
+        </span>
+        <div className="flex flex-wrap items-center gap-1">
+          {RANGE_PRESETS.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => setPreset(r.key)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                preset === r.key
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+        {preset === "custom" && (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            />
+            <span className="text-xs text-slate-500">to</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+        )}
+        <span className="ml-auto text-xs text-slate-500">
+          Showing {filteredTrades.length} of {trades.length} trades
+        </span>
+      </div>
+
+      {/* Daily-loss warning */}
+      {dailyLoss && dailyLoss.pct >= DAILY_LOSS_WARNING_PCT && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-rose-300 bg-rose-50 p-4 text-rose-800 dark:border-rose-800/50 dark:bg-rose-500/10 dark:text-rose-200">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">
+              Max daily-loss level exceeded
+            </p>
+            <p className="mt-0.5 text-xs opacity-80">
+              {dailyLoss.date}: lost ${Math.abs(dailyLoss.pnl).toLocaleString(undefined, { maximumFractionDigits: 2 })} ({dailyLoss.pct.toFixed(1)}% of your {user?.accountBalance?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? ""} balance). This exceeds the {DAILY_LOSS_WARNING_PCT}% guardrail — consider stopping for the day.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {filteredTrades.length === 0 && trades.length > 0 && (
+        <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+          <p className="text-sm text-slate-500">
+            No trades in the selected date range. Adjust the filter above.
+          </p>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -347,9 +516,94 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Dollar stats */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Net P&L ($)"
+          value={
+            dollarStats.hasPnl
+              ? `${dollarStats.netPnl > 0 ? "+" : ""}${dollarStats.netPnl.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+              : "—"
+          }
+          icon={<Wallet className="h-4 w-4" />}
+          subtext={
+            dollarStats.hasPnl
+              ? `Across ${dollarStats.pnlCount} trade${dollarStats.pnlCount === 1 ? "" : "s"} with P&L tracked`
+              : "Set a P&L amount on your trades"
+          }
+          trend={
+            dollarStats.hasPnl
+              ? dollarStats.netPnl > 0
+                ? "up"
+                : dollarStats.netPnl < 0
+                  ? "down"
+                  : null
+              : null
+          }
+        />
+        <StatCard
+          title="Total Risked ($)"
+          value={
+            dollarStats.hasRisk
+              ? `$${dollarStats.totalRisk.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+              : "—"
+          }
+          icon={<ShieldAlert className="h-4 w-4" />}
+          subtext={
+            dollarStats.hasRisk
+              ? "Sum of risk amounts on logged trades"
+              : "Set a risk amount on your trades"
+          }
+          trend={null}
+        />
+        <StatCard
+          title="Avg Risk %"
+          value={
+            riskStats.avgRiskPct != null
+              ? `${riskStats.avgRiskPct.toFixed(2)}%`
+              : "—"
+          }
+          icon={<Percent className="h-4 w-4" />}
+          subtext={
+            riskStats.balance
+              ? `vs $${riskStats.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} balance`
+              : "Set an account balance on your profile"
+          }
+          trend={
+            riskStats.avgRiskPct != null && riskStats.avgRiskPct <= 1
+              ? "up"
+              : riskStats.avgRiskPct != null
+                ? "down"
+                : null
+          }
+        />
+        <StatCard
+          title="Max Single Risk %"
+          value={
+            riskStats.maxRiskPct != null
+              ? `${riskStats.maxRiskPct.toFixed(2)}%`
+              : "—"
+          }
+          icon={<Gauge className="h-4 w-4" />}
+          subtext={
+            riskStats.maxRiskPct != null
+              ? "Largest risk on one trade"
+              : "Set risk amounts on your trades"
+          }
+          trend={
+            riskStats.maxRiskPct != null && riskStats.maxRiskPct <= 2
+              ? "up"
+              : riskStats.maxRiskPct != null
+                ? "down"
+                : null
+          }
+        />
+      </div>
+
       {/* Charts */}
       <div className="space-y-6">
-        <EquityCurveChart trades={trades} />
+        <EquityCurveChart trades={filteredTrades} />
+        <DollarEquityChart trades={filteredTrades} />
 
         {/* Session Breakdown Bar Chart */}
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">

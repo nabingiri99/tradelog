@@ -1,5 +1,6 @@
 const Trade = require('../models/Trade');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { computeRr } = require('../utils/rr');
 
 const tradeFields = [
   'date',
@@ -12,6 +13,9 @@ const tradeFields = [
   'target',
   'result',
   'rr',
+  'positionSize',
+  'riskAmount',
+  'pnlAmount',
   'notes',
   'tags',
   'mindset',
@@ -35,6 +39,10 @@ const pickTradeFields = (body) => {
 
 const buildDoc = (trade, userId) => {
   const doc = { user: userId, ...pickTradeFields(trade) };
+  const rr = computeRr(doc.direction, doc.entry, doc.stopLoss, doc.target);
+  if (rr !== undefined) {
+    doc.rr = rr;
+  }
   const id = typeof trade.id === 'string' && trade.id.trim() !== '' ? trade.id.trim() : undefined;
   if (id) doc._id = id;
   return doc;
@@ -45,7 +53,7 @@ const isValidId = (id) => typeof id === 'string' && id.trim() !== '';
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getAllTrades = asyncHandler(async (req, res) => {
-  const { search, direction, result, startDate, endDate, sort = '-createdAt' } = req.query;
+  const { search, direction, result, startDate, endDate, sort = '-createdAt', page, limit } = req.query;
 
   const query = { user: req.user._id };
 
@@ -92,6 +100,27 @@ const getAllTrades = asyncHandler(async (req, res) => {
         sortOptions[name] = descending ? -1 : 1;
       }
     });
+
+  const hasPagination = page !== undefined || limit !== undefined;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const pageLimit = Math.min(500, Math.max(1, parseInt(limit, 10) || 50));
+
+  if (hasPagination) {
+    const total = await Trade.countDocuments(query);
+    const trades = await Trade.find(query)
+      .sort(sortOptions)
+      .skip((pageNum - 1) * pageLimit)
+      .limit(pageLimit);
+
+    return res.status(200).json({
+      success: true,
+      count: trades.length,
+      total,
+      page: pageNum,
+      pages: Math.max(1, Math.ceil(total / pageLimit)),
+      data: trades,
+    });
+  }
 
   const trades = await Trade.find(query).sort(sortOptions);
 
@@ -147,9 +176,15 @@ const updateTrade = asyncHandler(async (req, res) => {
     });
   }
 
+  const picked = pickTradeFields(req.body);
+  const rr = computeRr(picked.direction, picked.entry, picked.stopLoss, picked.target);
+  if (rr !== undefined) {
+    picked.rr = rr;
+  }
+
   const trade = await Trade.findOneAndUpdate(
     { _id: id, user: req.user._id },
-    pickTradeFields(req.body),
+    picked,
     { new: true, runValidators: true }
   );
 

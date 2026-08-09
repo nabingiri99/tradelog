@@ -20,6 +20,32 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    accountBalance: {
+      type: Number,
+      default: null,
+    },
+    verificationToken: {
+      type: String,
+    },
+    verificationTokenExpires: {
+      type: Date,
+    },
+    refreshTokenHash: {
+      type: String,
+    },
+    refreshTokenExpires: {
+      type: Date,
+    },
+    resetTokenHash: {
+      type: String,
+    },
+    resetTokenExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

@@ -111,7 +111,10 @@ The API mirrors the frontend `Trade` type. `id` is a client-generated UUID store
 | `stopLoss`      | Number  | Yes      | Positive                                 |
 | `target`        | Number  | Yes      | Positive                                 |
 | `result`        | String  | No       | `Win`, `Loss`, `BreakEven`, `Open`       |
-| `rr`            | Number  | No       | Defaults to `0`                          |
+| `rr`            | Number  | No       | Auto-calculated from entry / stop loss / target; defaults to `0` |
+| `positionSize`  | Number  | No       | Units/lots traded; positive              |
+| `riskAmount`    | Number  | No       | Dollar amount risked; non-negative       |
+| `pnlAmount`     | Number  | No       | Realized dollar P&L (signed)             |
 | `notes`         | String  | No       |                                          |
 | `tags`          | [String]| No       | Defaults to `[]`                         |
 | `mindset`       | Object  | No       | `{ before, after }`                      |

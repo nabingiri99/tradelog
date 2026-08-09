@@ -1,0 +1,32 @@
+{
+  "exportedAt": "2026-08-08T19:27:29.492Z",
+  "date": "2026-08-08",
+  "user": {
+    "id": "6a7626c41608c493eb7209b7",
+    "email": "nabingiri2409@gmail.com",
+    "name": "nabin giri"
+  },
+  "tradeCount": 1,
+  "trades": [
+    {
+      "user": "6a7626c41608c493eb7209b7",
+      "date": "2026-08-08",
+      "entryTime": "01:09",
+      "pair": "EURUSD",
+      "session": "London",
+      "direction": "Buy",
+      "entry": 1.0703,
+      "stopLoss": 1.065,
+      "target": 1.09,
+      "result": "Win",
+      "rr": 3.717,
+      "tags": [],
+      "emotion": "Calm",
+      "reason": "Followed plan",
+      "isValidRuleTrade": true,
+      "createdAt": "2026-08-08T19:24:14.012Z",
+      "updatedAt": "2026-08-08T19:24:14.012Z",
+      "id": "71e6b9bd-cc9a-4982-b836-ee077aac8db1"
+    }
+  ]
+}

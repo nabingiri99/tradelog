@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import {
   Trophy,
   Skull,
@@ -14,6 +14,9 @@ import {
   getTagAnalytics,
   getStreaks,
   getRrComparison,
+  getDirectionAnalytics,
+  getHourlyAnalytics,
+  getDailyAnalytics,
   type AnalyticsSession,
 } from "../lib/analytics";
 
@@ -49,6 +52,42 @@ function WinRateBar({ winRate }: { winRate: number }) {
   );
 }
 
+function heatCellStyle(trades: number, winRate: number): CSSProperties {
+  if (trades === 0) return { backgroundColor: "transparent" };
+  const alpha = 0.35 + Math.min(0.55, (trades / 8) * 0.55);
+  const base = winRate >= 50 ? "16,185,129" : "244,63,94";
+  return { backgroundColor: `rgba(${base},${alpha.toFixed(2)})` };
+}
+
+function HeatmapCell({
+  label,
+  trades,
+  winRate,
+}: {
+  label: string;
+  trades: number;
+  winRate: number;
+}) {
+  return (
+    <div
+      title={`${label} — ${trades} trade${trades === 1 ? "" : "s"}, ${trades > 0 ? `${winRate.toFixed(0)}% win rate` : "no trades"}`}
+      className="flex flex-col items-center justify-center rounded-md px-1 py-2 text-center"
+      style={heatCellStyle(trades, winRate)}
+    >
+      <span
+        className={`text-xs font-medium ${trades > 0 ? "text-white" : "text-slate-500 dark:text-slate-400"}`}
+      >
+        {label}
+      </span>
+      <span
+        className={`text-[10px] ${trades > 0 ? "text-white/90" : "text-slate-400 dark:text-slate-500"}`}
+      >
+        {trades > 0 ? `${winRate.toFixed(0)}%` : "—"}
+      </span>
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const { trades } = useTrades();
 
@@ -56,6 +95,9 @@ export default function AnalyticsPage() {
   const tags = useMemo(() => getTagAnalytics(trades), [trades]);
   const streaks = useMemo(() => getStreaks(trades), [trades]);
   const rr = useMemo(() => getRrComparison(trades), [trades]);
+  const directions = useMemo(() => getDirectionAnalytics(trades), [trades]);
+  const hourly = useMemo(() => getHourlyAnalytics(trades), [trades]);
+  const daily = useMemo(() => getDailyAnalytics(trades), [trades]);
 
   const hasClosed = trades.some((t) => t.result !== "Open");
 
@@ -215,6 +257,109 @@ export default function AnalyticsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Win Rate by Direction */}
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+            <h3 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Win Rate by Direction
+            </h3>
+            <p className="mb-4 text-xs text-slate-500">
+              Net R counts wins at the achieved multiple and losses at -1R.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <thead>
+                  <tr>
+                    <th className={headerClass}>Direction</th>
+                    <th className={headerClass}>Trades</th>
+                    <th className={headerClass}>W / L</th>
+                    <th className={headerClass}>Win Rate</th>
+                    <th className={headerClass}>Net R</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
+                  {directions.map((d) => (
+                    <tr key={d.direction}>
+                      <td
+                        className={`${cellClass} font-medium ${
+                          d.direction === "Buy"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {d.direction}
+                      </td>
+                      <td className={cellClass}>{d.trades}</td>
+                      <td className={cellClass}>
+                        <span className="text-emerald-600 dark:text-emerald-400">{d.wins}</span>
+                        {" / "}
+                        <span className="text-rose-600 dark:text-rose-400">{d.losses}</span>
+                      </td>
+                      <td className={cellClass}>
+                        {d.wins + d.losses > 0 ? (
+                          <WinRateBar winRate={d.winRate} />
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td
+                        className={`${cellClass} font-medium ${
+                          d.netR > 0
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : d.netR < 0
+                              ? "text-rose-600 dark:text-rose-400"
+                              : ""
+                        }`}
+                      >
+                        {d.netR > 0 ? "+" : ""}
+                        {d.netR.toFixed(2)}R
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Hour of day heatmap */}
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+            <h3 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Win Rate by Hour of Day
+            </h3>
+            <p className="mb-4 text-xs text-slate-500">
+              Cells use the trade's entry time (24h clock, local browser time).
+            </p>
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8 md:grid-cols-12">
+              {hourly.map((h) => (
+                <HeatmapCell
+                  key={h.hour}
+                  label={String(h.hour)}
+                  trades={h.trades}
+                  winRate={h.winRate}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Day of week heatmap */}
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4">
+            <h3 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Win Rate by Day of Week
+            </h3>
+            <p className="mb-4 text-xs text-slate-500">
+              Based on the trade's logged date.
+            </p>
+            <div className="grid grid-cols-7 gap-1.5">
+              {daily.map((d) => (
+                <HeatmapCell
+                  key={d.day}
+                  label={d.label}
+                  trades={d.trades}
+                  winRate={d.winRate}
+                />
+              ))}
             </div>
           </div>
 

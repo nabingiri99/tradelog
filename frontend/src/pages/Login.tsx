@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LineChart,
   Loader2,
-  ChartCandlestick,
+  Newspaper,
   TrendingUp,
   BookOpen,
   ShieldCheck,
@@ -23,9 +23,9 @@ const labelClass =
 
 const FEATURES = [
   {
-    icon: ChartCandlestick,
-    title: "Candlestick chart backtesting",
-    text: "Replay historical candles with a TradingView-style chart and journal the results.",
+    icon: Newspaper,
+    title: "Forex news calendar",
+    text: "Track high-impact economic events from the ForexFactory calendar so you can trade around the news.",
   },
   {
     icon: TrendingUp,
@@ -59,9 +59,9 @@ const HOW_IT_WORKS = [
   },
   {
     step: "03",
-    icon: ChartCandlestick,
-    title: "Backtest your strategy",
-    text: "Replay historical candles with a TradingView-style chart and measure your edge over time.",
+    icon: Newspaper,
+    title: "Watch the economic calendar",
+    text: "See upcoming high-impact news and avoid trading blind into market-moving events.",
   },
 ];
 
@@ -100,7 +100,7 @@ const CHANGELOG = [
       { type: "Added", text: "CSV import/export for backup and offline analysis" },
       { type: "Added", text: "Dashboard analytics: win rate, total R, average R, streaks, and session breakdowns" },
       { type: "Added", text: "Custom pre-trade rules checklist to validate every entry" },
-      { type: "Added", text: "Backtest progress tracker and TradingView-style candlestick chart backtester" },
+      { type: "Added", text: "Forex news calendar with high-impact economic events from ForexFactory" },
       { type: "Added", text: "Equity curve and performance charts powered by Recharts" },
       { type: "Added", text: "Dark mode with a light/dark theme toggle" },
     ],
@@ -114,7 +114,7 @@ const CHANGELOG_BADGES: Record<string, string> = {
 };
 
 const ABOUT_TEXT =
-  "TradeLog is a full-stack trading journal and backtester built with React, Express, and MongoDB. Every account owns an isolated journal, trades are stored server-side, and all sessions are protected with JWT authentication. Your data stays in your own database - local by default, cloud-ready on demand.";
+  "TradeLog is a full-stack trading journal built with React, Express, and MongoDB. Every account owns an isolated journal, trades are stored server-side, and all sessions are protected with JWT authentication. A built-in economic news calendar helps you stay on top of high-impact events. Your data stays in your own database - local by default, cloud-ready on demand.";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -192,7 +192,7 @@ export default function Login() {
                 TradeLog
               </span>
               <span className="mt-0.5 block text-[11px] leading-none text-slate-500">
-                Trading Journal &amp; Backtester
+                Trading Journal &amp; News
               </span>
             </span>
           </a>
@@ -243,7 +243,7 @@ export default function Login() {
               <p className="bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-2xl font-bold text-transparent dark:from-indigo-300 dark:to-emerald-300">
                 TradeLog
               </p>
-              <p className="text-xs text-slate-500">Trading Journal & Backtester</p>
+              <p className="text-xs text-slate-500">Trading Journal & News</p>
             </div>
           </div>
 
@@ -255,8 +255,8 @@ export default function Login() {
             </span>
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            Track every entry, review your rules, and backtest strategies on
-            live market data — all from one focused workspace.
+            Track every entry, review your rules, and stay ahead of the
+            economic calendar — all from one focused workspace.
           </p>
 
           <ul id="features" className="mt-8 space-y-4">
@@ -408,15 +408,34 @@ export default function Login() {
               )}
 
               {!isRegister && (
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 bg-slate-100 accent-indigo-500 dark:border-slate-600 dark:bg-slate-800"
-                  />
-                  Remember me
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(e) => setRemember(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 bg-slate-100 accent-indigo-500 dark:border-slate-600 dark:bg-slate-800"
+                    />
+                    Remember me
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+              )}
+
+              {isRegister && (
+                <div className="flex items-start gap-2 rounded-lg border border-indigo-200 bg-indigo-500/5 px-3 py-2.5 text-xs text-indigo-700 dark:border-indigo-800/40 dark:text-indigo-300">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    We will send a verification email to your address. You can
+                    still sign in right away - verification lets you reset your
+                    password later.
+                  </span>
+                </div>
               )}
 
               {error && (

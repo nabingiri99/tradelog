@@ -6,10 +6,12 @@ import TradeLog from "./pages/TradeLog";
 import AddEditTrade from "./pages/AddEditTrade";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RulesChecklist from "./pages/RulesChecklist";
-import BacktestProgress from "./pages/BacktestProgress";
-import ChartBacktest from "./pages/ChartBacktest";
+import News from "./pages/News";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { useAuth } from "./lib/authStore";
 
 function Layout() {
@@ -42,6 +44,9 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
@@ -50,8 +55,7 @@ export default function App() {
             <Route path="/edit/:id" element={<AddEditTrade />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/checklist" element={<RulesChecklist />} />
-            <Route path="/backtest" element={<BacktestProgress />} />
-            <Route path="/backtest/chart" element={<ChartBacktest />} />
+            <Route path="/news" element={<News />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>

@@ -16,6 +16,9 @@ export interface Trade {
   target: number;
   result: ResultType;
   rr: number;
+  positionSize?: number;
+  riskAmount?: number;
+  pnlAmount?: number;
   notes?: string;
   tags?: string[];
   mindset?: { before: string; after: string };

@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
 
 export interface UserSettings {
-  backtestGoal: number;
+  journalReminderEnabled: boolean;
+  journalReminderTime: string;
 }
 
 export interface SettingsContextValue {
@@ -9,7 +10,10 @@ export interface SettingsContextValue {
   updateSettings: (partial: Partial<UserSettings>) => void;
 }
 
-export const DEFAULT_SETTINGS: UserSettings = { backtestGoal: 50 };
+export const DEFAULT_SETTINGS: UserSettings = {
+  journalReminderEnabled: false,
+  journalReminderTime: "20:00",
+};
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null);
 

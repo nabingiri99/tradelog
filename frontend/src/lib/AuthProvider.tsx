@@ -5,8 +5,10 @@ import {
   type AuthContextValue,
   type AuthResult,
   type CurrentUser,
-  getAuthToken,
+  hasStoredSession,
   setAuthToken,
+  setRefreshToken,
+  clearStoredTokens,
 } from "./authStore";
 import { api } from "./api";
 
@@ -14,16 +16,23 @@ function toCurrentUser(user: {
   id: string;
   email: string;
   name: string;
+  emailVerified?: boolean;
+  accountBalance?: number;
 }): CurrentUser {
-  return { email: user.email, name: user.name };
+  return {
+    email: user.email,
+    name: user.name,
+    emailVerified: user.emailVerified,
+    accountBalance: user.accountBalance,
+  };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [restoring, setRestoring] = useState<boolean>(() => Boolean(getAuthToken()));
+  const [restoring, setRestoring] = useState<boolean>(() => hasStoredSession());
 
   useEffect(() => {
-    if (!getAuthToken()) return;
+    if (!hasStoredSession()) return;
 
     let cancelled = false;
     api.auth
@@ -32,7 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setUser(toCurrentUser(res.data));
       })
       .catch(() => {
-        if (!cancelled) setAuthToken(null);
+        if (!cancelled) {
+          clearStoredTokens();
+        }
       })
       .finally(() => {
         if (!cancelled) setRestoring(false);
@@ -44,6 +55,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(() => {
+    function applySession(
+      res: {
+        accessToken?: string;
+        refreshToken?: string;
+        data?: {
+          id: string;
+          email: string;
+          name: string;
+          emailVerified?: boolean;
+          accountBalance?: number;
+        };
+      },
+      remember: boolean,
+    ) {
+      if (res.accessToken) setAuthToken(res.accessToken, remember);
+      if (res.refreshToken) setRefreshToken(res.refreshToken, remember);
+      if (res.data) setUser(toCurrentUser(res.data));
+    }
+
     async function register(
       name: string,
       email: string,
@@ -51,8 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ): Promise<AuthResult> {
       try {
         const res = await api.auth.register({ name, email, password });
-        if (res.token) setAuthToken(res.token);
-        if (res.data) setUser(toCurrentUser(res.data));
+        applySession(res, true);
         return { ok: true };
       } catch (err) {
         return {
@@ -69,8 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ): Promise<AuthResult> {
       try {
         const res = await api.auth.login({ email, password });
-        if (res.token) setAuthToken(res.token, remember);
-        if (res.data) setUser(toCurrentUser(res.data));
+        applySession(res, remember);
         return { ok: true };
       } catch (err) {
         return {
@@ -80,14 +108,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    function logout() {
-      setAuthToken(null);
+    async function logout() {
+      try {
+        await api.auth.logout();
+      } catch {
+        /* ignore */
+      }
+      clearStoredTokens();
       setUser(null);
     }
 
-    async function updateProfile(name: string): Promise<AuthResult> {
+    async function updateProfile(payload: {
+      name?: string;
+      accountBalance?: number;
+    }): Promise<AuthResult> {
       try {
-        const res = await api.auth.updateProfile(name);
+        const res = await api.auth.updateProfile(payload);
         if (res.data) setUser(toCurrentUser(res.data));
         return { ok: true };
       } catch (err) {

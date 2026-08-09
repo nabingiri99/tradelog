@@ -179,6 +179,8 @@ export default function TradeTable({
                 </button>
               </th>
             ))}
+            <th className={`${headerClass} text-left`}>Risk</th>
+            <th className={`${headerClass} text-left`}>P&amp;L ($)</th>
             <th className={`${headerClass} text-left`}>Rules</th>
             <th className={`${headerClass} text-left`}>Tags</th>
             <th className={`${headerClass} text-left`}>Emotion</th>
@@ -239,6 +241,33 @@ export default function TradeTable({
                 <span className="font-medium text-violet-400">
                   {trade.rr.toFixed(2)}R
                 </span>
+              </td>
+              <td className={cellClass}>
+                {trade.riskAmount != null ? (
+                  <span className="text-amber-500 dark:text-amber-400">
+                    ${trade.riskAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400 dark:text-slate-600">—</span>
+                )}
+              </td>
+              <td className={cellClass}>
+                {trade.pnlAmount != null ? (
+                  <span
+                    className={
+                      trade.pnlAmount > 0
+                        ? "font-medium text-emerald-600 dark:text-emerald-400"
+                        : trade.pnlAmount < 0
+                          ? "font-medium text-rose-600 dark:text-rose-400"
+                          : "text-slate-600 dark:text-slate-400"
+                    }
+                  >
+                    {trade.pnlAmount > 0 ? "+" : ""}
+                    {trade.pnlAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400 dark:text-slate-600">—</span>
+                )}
               </td>
               <td className={cellClass}>
                 <RuleBadge valid={trade.isValidRuleTrade} />

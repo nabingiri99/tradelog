@@ -6,13 +6,12 @@ import {
   PlusCircle,
   PieChart,
   CheckSquare,
-  TrendingUp,
+  Newspaper,
   Menu,
   X,
   LineChart,
   LogOut,
   UserRound,
-  ChartCandlestick,
 } from "lucide-react";
 import { useAuth } from "../lib/authStore";
 import ThemeToggle from "./ThemeToggle";
@@ -23,8 +22,7 @@ const navItems = [
   { to: "/add", label: "Add Trade", icon: PlusCircle },
   { to: "/analytics", label: "Analytics", icon: PieChart },
   { to: "/checklist", label: "Rules Checklist", icon: CheckSquare },
-  { to: "/backtest", label: "Backtest Progress", icon: TrendingUp },
-  { to: "/backtest/chart", label: "Chart Backtest", icon: ChartCandlestick },
+  { to: "/news", label: "News", icon: Newspaper },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 

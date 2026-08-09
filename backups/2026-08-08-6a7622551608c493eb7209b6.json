@@ -1,0 +1,50 @@
+{
+  "exportedAt": "2026-08-08T19:27:29.488Z",
+  "date": "2026-08-08",
+  "user": {
+    "id": "6a7622551608c493eb7209b6",
+    "email": "test1786126932@example.com",
+    "name": "Tester"
+  },
+  "tradeCount": 2,
+  "trades": [
+    {
+      "user": "6a7622551608c493eb7209b6",
+      "date": "2026-08-07",
+      "pair": "EURUSD",
+      "session": "London",
+      "direction": "Sell",
+      "entry": 100,
+      "stopLoss": 110,
+      "target": 80,
+      "result": "Win",
+      "rr": 2,
+      "positionSize": 2,
+      "riskAmount": 50,
+      "pnlAmount": 100,
+      "notes": "auto rr test",
+      "tags": [],
+      "isValidRuleTrade": false,
+      "createdAt": "2026-08-07T18:22:13.600Z",
+      "updatedAt": "2026-08-07T18:22:13.818Z",
+      "id": "32cc391b-42b3-4490-9c4c-6f275e9797cb"
+    },
+    {
+      "user": "6a7622551608c493eb7209b6",
+      "date": "2026-08-06",
+      "pair": "GBPUSD",
+      "session": "Other",
+      "direction": "Sell",
+      "entry": 1.3,
+      "stopLoss": 1.35,
+      "target": 1.25,
+      "result": "Loss",
+      "rr": 1,
+      "tags": [],
+      "isValidRuleTrade": false,
+      "createdAt": "2026-08-07T18:22:13.701Z",
+      "updatedAt": "2026-08-07T18:22:13.701Z",
+      "id": "aafd9eb3-1968-495a-a426-3215f05841b8"
+    }
+  ]
+}

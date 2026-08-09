@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const { computeRr } = require('../utils/rr');
 
 const tradeSchema = new mongoose.Schema(
   {
@@ -81,6 +82,27 @@ const tradeSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'RR cannot be negative'],
     },
+    positionSize: {
+      type: Number,
+      validate: {
+        validator: (value) => value === undefined || value > 0,
+        message: 'Position size must be positive',
+      },
+    },
+    riskAmount: {
+      type: Number,
+      validate: {
+        validator: (value) => value === undefined || value >= 0,
+        message: 'Risk amount cannot be negative',
+      },
+    },
+    pnlAmount: {
+      type: Number,
+      validate: {
+        validator: (value) => value === undefined || Number.isFinite(value),
+        message: 'P&L amount must be a number',
+      },
+    },
     notes: {
       type: String,
       trim: true,
@@ -113,6 +135,13 @@ const tradeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+tradeSchema.pre('validate', function autoRr() {
+  const rr = computeRr(this.direction, this.entry, this.stopLoss, this.target);
+  if (rr !== undefined) {
+    this.rr = rr;
+  }
+});
 
 tradeSchema.set('toJSON', {
   transform: (doc, ret) => {

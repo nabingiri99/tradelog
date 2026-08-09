@@ -3,6 +3,8 @@ import { createContext, useContext } from "react";
 export interface CurrentUser {
   email: string;
   name: string;
+  emailVerified?: boolean;
+  accountBalance?: number;
 }
 
 export interface AuthResult {
@@ -14,7 +16,10 @@ export interface AuthContextValue {
   user: CurrentUser | null;
   login: (email: string, password: string, remember: boolean) => Promise<AuthResult>;
   register: (name: string, email: string, password: string) => Promise<AuthResult>;
-  updateProfile: (name: string) => Promise<AuthResult>;
+  updateProfile: (payload: {
+    name?: string;
+    accountBalance?: number;
+  }) => Promise<AuthResult>;
   changePassword: (current: string, next: string) => Promise<AuthResult>;
   logout: () => void;
 }
@@ -30,6 +35,7 @@ export function useAuth(): AuthContextValue {
 }
 
 const TOKEN_KEY = "tradelog.token";
+const REFRESH_KEY = "tradelog.refresh";
 
 export function getAuthToken(): string | null {
   try {
@@ -52,4 +58,36 @@ export function setAuthToken(token: string | null, remember = true): void {
   } catch {
     /* storage unavailable */
   }
+}
+
+export function getRefreshToken(): string | null {
+  try {
+    return (
+      localStorage.getItem(REFRESH_KEY) ?? sessionStorage.getItem(REFRESH_KEY)
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function setRefreshToken(token: string | null, remember = true): void {
+  try {
+    if (token) {
+      (remember ? localStorage : sessionStorage).setItem(REFRESH_KEY, token);
+    } else {
+      localStorage.removeItem(REFRESH_KEY);
+      sessionStorage.removeItem(REFRESH_KEY);
+    }
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+export function hasStoredSession(): boolean {
+  return Boolean(getAuthToken() || getRefreshToken());
+}
+
+export function clearStoredTokens(): void {
+  setAuthToken(null);
+  setRefreshToken(null);
 }
