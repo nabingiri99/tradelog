@@ -392,3 +392,86 @@ test('unknown route returns 404', async () => {
   const { status } = await request('/does-not-exist');
   assert.equal(status, 404);
 });
+
+test('journal CRUD upserts and isolates per user', async () => {
+  const loginRes = await request('/auth/login', {
+    method: 'POST',
+    body: { email: 'alice@example.com', password: 'secret123' },
+  });
+  const token = loginRes.json.accessToken;
+
+  const body = {
+    mood: 'Focused',
+    performanceScore: 7,
+    whatWentWell: 'Followed the plan all day',
+    whatToImprove: 'Cut losing trades sooner',
+    lessonsLearned: 'London session is my best edge',
+    nextDayPlan: 'Only trade setups with 1:2 R:R',
+    gratitude: 'Good discipline',
+  };
+
+  const created = await request('/journal/2026-08-10', {
+    method: 'PUT',
+    token,
+    body,
+  });
+  assert.equal(created.status, 200);
+  assert.equal(created.json.data.date, '2026-08-10');
+  assert.equal(created.json.data.mood, 'Focused');
+  assert.equal(created.json.data.performanceScore, 7);
+
+  const fetched = await request('/journal/2026-08-10', { token });
+  assert.equal(fetched.status, 200);
+  assert.equal(fetched.json.data.lessonsLearned, 'London session is my best edge');
+
+  const updated = await request('/journal/2026-08-10', {
+    method: 'PUT',
+    token,
+    body: { mood: 'Tired', performanceScore: 4 },
+  });
+  assert.equal(updated.status, 200);
+  assert.equal(updated.json.data.mood, 'Tired');
+  assert.equal(updated.json.data.whatWentWell, 'Followed the plan all day');
+
+  const list = await request('/journal', { token });
+  assert.equal(list.status, 200);
+  assert.equal(list.json.data.length, 1);
+
+  const bobRes = await request('/auth/login', {
+    method: 'POST',
+    body: { email: 'bob@example.com', password: 'secret123' },
+  });
+  const bobToken = bobRes.json.accessToken;
+  const asBob = await request('/journal/2026-08-10', { token: bobToken });
+  assert.equal(asBob.status, 404);
+
+  const deleted = await request('/journal/2026-08-10', {
+    method: 'DELETE',
+    token,
+  });
+  assert.equal(deleted.status, 200);
+  const afterDelete = await request('/journal', { token });
+  assert.equal(afterDelete.json.data.length, 0);
+});
+
+test('journal validates date format', async () => {
+  const loginRes = await request('/auth/login', {
+    method: 'POST',
+    body: { email: 'alice@example.com', password: 'secret123' },
+  });
+  const token = loginRes.json.accessToken;
+
+  const bad = await request('/journal/not-a-date', {
+    method: 'PUT',
+    token,
+    body: { mood: 'Ok' },
+  });
+  assert.equal(bad.status, 400);
+
+  const badScore = await request('/journal/2026-08-11', {
+    method: 'PUT',
+    token,
+    body: { performanceScore: 42 },
+  });
+  assert.equal(badScore.status, 400);
+});

@@ -12,6 +12,8 @@ import Profile from "./pages/Profile";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Journal from "./pages/Journal";
+import OpenTrades from "./pages/OpenTrades";
 import { useAuth } from "./lib/authStore";
 
 function Layout() {
@@ -51,6 +53,8 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/log" element={<TradeLog />} />
+            <Route path="/open" element={<OpenTrades />} />
+            <Route path="/journal" element={<Journal />} />
             <Route path="/add" element={<AddEditTrade />} />
             <Route path="/edit/:id" element={<AddEditTrade />} />
             <Route path="/analytics" element={<AnalyticsPage />} />

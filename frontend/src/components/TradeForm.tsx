@@ -106,6 +106,11 @@ export default function TradeForm({
   const [riskAmount, setRiskAmount] = useState(
     initialTrade?.riskAmount != null ? String(initialTrade.riskAmount) : "",
   );
+  const [calcBalance, setCalcBalance] = useState(
+    user?.accountBalance != null ? String(user.accountBalance) : "",
+  );
+  const [calcRiskPct, setCalcRiskPct] = useState("1");
+  const [calcApplied, setCalcApplied] = useState<string | null>(null);
   const [pnlAmount, setPnlAmount] = useState(
     initialTrade?.pnlAmount != null ? String(initialTrade.pnlAmount) : "",
   );
@@ -152,6 +157,36 @@ export default function TradeForm({
       direction === "Sell" ? entryValue - targetValue : targetValue - entryValue;
     return Math.round((Math.max(reward, 0) / risk) * 100) / 100;
   }, [entry, stopLoss, target, direction]);
+
+  const calc = useMemo(() => {
+    const balance = Number(calcBalance);
+    const pct = Number(calcRiskPct);
+    if (calcBalance === "" || calcRiskPct === "" || !Number.isFinite(balance) || !Number.isFinite(pct)) {
+      return null;
+    }
+    if (balance <= 0 || pct < 0) return null;
+    const riskDollars = (balance * pct) / 100;
+    const entryValue = Number(entry);
+    const stopValue = Number(stopLoss);
+    let size = null;
+    if (
+      entry !== "" &&
+      stopLoss !== "" &&
+      Number.isFinite(entryValue) &&
+      Number.isFinite(stopValue)
+    ) {
+      const distance = Math.abs(entryValue - stopValue);
+      if (distance > 0) size = riskDollars / distance;
+    }
+    return { riskDollars, size };
+  }, [calcBalance, calcRiskPct, entry, stopLoss]);
+
+  function applyCalc() {
+    if (!calc) return;
+    setRiskAmount(calc.riskDollars.toFixed(2));
+    if (calc.size != null) setPositionSize(calc.size.toFixed(4));
+    setCalcApplied("Risk amount and position size filled from the calculator.");
+  }
 
   function toggleRule(id: string) {
     setRuleChecks((prev) => {
@@ -246,6 +281,7 @@ export default function TradeForm({
     }
 
     setError(null);
+    setCalcApplied(null);
     onSubmitSuccess();
     navigate("/log");
   }
@@ -442,6 +478,79 @@ export default function TradeForm({
             value={positionSize}
             onChange={(e) => setPositionSize(e.target.value)}
           />
+        </div>
+
+        <div className="sm:col-span-2">
+          <div className="rounded-lg border border-indigo-300 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-500/5 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+              Position Size Calculator
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className={labelClass} htmlFor="calcBalance">
+                  Account Balance ($)
+                </label>
+                <input
+                  id="calcBalance"
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="e.g. 10000"
+                  className={inputClass}
+                  value={calcBalance}
+                  onChange={(e) => setCalcBalance(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="calcRiskPct">
+                  Risk %
+                </label>
+                <input
+                  id="calcRiskPct"
+                  type="number"
+                  step="any"
+                  min="0"
+                  max="100"
+                  placeholder="e.g. 1"
+                  className={inputClass}
+                  value={calcRiskPct}
+                  onChange={(e) => setCalcRiskPct(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                Risk amount:{" "}
+                <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                  {calc ? `$${calc.riskDollars.toFixed(2)}` : "—"}
+                </span>
+                {calc?.size != null && (
+                  <>
+                    {" "}· Position size:{" "}
+                    <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                      {calc.size.toFixed(4)}
+                    </span>
+                  </>
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={applyCalc}
+                disabled={!calc}
+                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Apply to fields
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              Position size is estimated as risk $ ÷ distance between entry and
+              stop loss (in price units). Set your account balance on the Profile
+              page and it will be pre-filled here.
+            </p>
+            {calcApplied && (
+              <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">{calcApplied}</p>
+            )}
+          </div>
         </div>
 
         <div>

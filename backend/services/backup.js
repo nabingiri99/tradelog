@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
 const Trade = require('../models/Trade');
+const Journal = require('../models/Journal');
 
 const BACKUP_DIR = path.resolve(__dirname, '../../backups');
 const STATE_FILE = path.join(BACKUP_DIR, 'state.json');
@@ -34,6 +35,7 @@ async function runBackup() {
 
   for (const user of users) {
     const trades = await Trade.find({ user: user._id }).sort({ createdAt: 1 });
+    const journals = await Journal.find({ user: user._id }).sort({ createdAt: 1 });
     const file = path.join(BACKUP_DIR, `${dateKey}-${user._id}.json`);
     const payload = {
       exportedAt: new Date().toISOString(),
@@ -41,6 +43,8 @@ async function runBackup() {
       user: { id: user._id.toString(), email: user.email, name: user.name },
       tradeCount: trades.length,
       trades,
+      journalCount: journals.length,
+      journals,
     };
     fs.writeFileSync(file, JSON.stringify(payload, null, 2));
     backedUp += 1;

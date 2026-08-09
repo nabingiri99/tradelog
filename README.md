@@ -13,10 +13,13 @@ The project runs fully **locally** — including MongoDB. No cloud account is re
 
 - User registration / login with JWT auth (bcrypt password hashing on the server)
 - Trade journal: add, edit, delete, duplicate, import (CSV/JSON), export (CSV)
+- Open trades view: track live positions and close them with a final P&L
 - Auto-calculated R:R from entry / stop loss / target
+- Position size calculator: balance + risk % → risk amount and size
+- Daily journal with mood, performance score and reflection prompts
 - Track position size, dollar risk amount and realized P&L per trade
 - Per-user data: each account only sees its own trades
-- Dashboard, analytics, rules checklist, backtest progress and chart backtest
+- Dashboard, analytics and rules checklist
 - Dark / light theme
 
 ## Project Layout

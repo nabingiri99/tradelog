@@ -283,6 +283,30 @@ export const api = {
     run: () =>
       request<ApiDataResponse<BackupStatus>>("/backup/run", { method: "POST" }),
   },
+
+  journal: {
+    list: (params?: { from?: string; to?: string; limit?: number }) =>
+      request<ApiListResponse<JournalEntry>>(
+        `/journal${params ? `?${new URLSearchParams(
+          Object.fromEntries(
+            Object.entries(params)
+              .filter(([, v]) => v !== undefined && v !== "")
+              .map(([k, v]) => [k, String(v)]),
+          ),
+        ).toString()}` : ""}`,
+      ),
+    get: (date: string) =>
+      request<ApiDataResponse<JournalEntry>>(`/journal/${date}`),
+    upsert: (date: string, entry: Partial<JournalEntry>) =>
+      request<ApiDataResponse<JournalEntry>>(`/journal/${date}`, {
+        method: "PUT",
+        body: JSON.stringify(entry),
+      }),
+    remove: (date: string) =>
+      request<ApiDataResponse<unknown>>(`/journal/${date}`, {
+        method: "DELETE",
+      }),
+  },
 };
 
 export interface NewsEvent {
@@ -300,4 +324,16 @@ export interface BackupStatus {
   enabled: boolean;
   lastRunAt: string | null;
   lastRunTradeCount?: number;
+}
+
+export interface JournalEntry {
+  id: string;
+  date: string;
+  mood: string;
+  performanceScore: number | null;
+  whatWentWell: string;
+  whatToImprove: string;
+  lessonsLearned: string;
+  nextDayPlan: string;
+  gratitude: string;
 }

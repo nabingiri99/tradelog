@@ -12,6 +12,8 @@ import {
   LineChart,
   LogOut,
   UserRound,
+  Activity,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "../lib/authStore";
 import ThemeToggle from "./ThemeToggle";
@@ -19,6 +21,8 @@ import ThemeToggle from "./ThemeToggle";
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/log", label: "Trade Log", icon: List },
+  { to: "/open", label: "Open Trades", icon: Activity },
+  { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/add", label: "Add Trade", icon: PlusCircle },
   { to: "/analytics", label: "Analytics", icon: PieChart },
   { to: "/checklist", label: "Rules Checklist", icon: CheckSquare },
