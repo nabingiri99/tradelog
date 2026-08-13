@@ -2,11 +2,32 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const mongoose = require('mongoose');
 
 const routes = require('./routes');
+const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+
+let dbConnected = false;
+
+app.use(async (req, res, next) => {
+  if (dbConnected || mongoose.connection.readyState === 1) {
+    dbConnected = true;
+    return next();
+  }
+  try {
+    await connectDB();
+    dbConnected = true;
+  } catch (err) {
+    return res.status(503).json({
+      success: false,
+      message: `Database unavailable: ${err.message}`,
+    });
+  }
+  next();
+});
 
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)

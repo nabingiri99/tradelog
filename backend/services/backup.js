@@ -7,13 +7,21 @@ const Journal = require('../models/Journal');
 const BACKUP_DIR = path.resolve(__dirname, '../../backups');
 const STATE_FILE = path.join(BACKUP_DIR, 'state.json');
 
+const IS_SERVERLESS = Boolean(process.env.VERCEL);
+
 function ensureDir() {
+  if (IS_SERVERLESS) {
+    return;
+  }
   if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
   }
 }
 
 function getState() {
+  if (IS_SERVERLESS) {
+    return { enabled: false, lastRunAt: null, message: 'Backups disabled on serverless (read-only filesystem)' };
+  }
   try {
     return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
   } catch {
@@ -27,6 +35,11 @@ function saveState(state) {
 }
 
 async function runBackup() {
+  if (IS_SERVERLESS) {
+    const state = getState();
+    console.warn('[backup] skipped: serverless filesystem is read-only');
+    return state;
+  }
   ensureDir();
 
   const users = await User.find().select('_id email name');

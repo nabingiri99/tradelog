@@ -4,8 +4,9 @@ const connectDB = async () => {
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
-    console.error('MONGO_URI is not defined in the environment.');
-    process.exit(1);
+    const err = new Error('MONGO_URI is not defined in the environment.');
+    console.error(err.message);
+    throw err;
   }
 
   try {
@@ -19,9 +20,11 @@ const connectDB = async () => {
     mongoose.connection.on('disconnected', () => {
       console.warn('MongoDB disconnected');
     });
+
+    return conn;
   } catch (error) {
     console.error(`MongoDB connection failed: ${error.message}`);
-    process.exit(1);
+    throw error;
   }
 };
 

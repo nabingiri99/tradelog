@@ -40,6 +40,10 @@ The project runs fully **locally** — including MongoDB. No cloud account is re
 
 ## Getting Started
 
+### Deploy to Vercel (cloud, public URL)
+
+The project includes a ready-made Vercel setup (`vercel.json` + serverless entry). Follow [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md) for full steps — you'll need a MongoDB Atlas (free) connection string and your Vercel account.
+
 ### Quick start (one command)
 
 ```bash

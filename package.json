@@ -1,0 +1,14 @@
+{
+  "name": "tradelog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TradeLog - trading journal web app (root for Vercel deployment)",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "vercel-build": "npm install --prefix backend --omit=dev && npm install --prefix frontend && npm run build --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend"
+  }
+}
